@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-import { MessageIcon, VercelIcon } from './icons';
+import { UniWiseLogo } from '@/components/uniwise-logo';
 
 export const Overview = () => {
   return (
@@ -14,7 +14,9 @@ export const Overview = () => {
       transition={{ delay: 0.5 }}
     >
       <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-        <p className="text-3xl font-bold">Welcome to UniWise</p>
+        <div className="flex justify-center">
+          <UniWiseLogo />
+        </div>
         <p>What can I help you with?</p>
       </div>
     </motion.div>
