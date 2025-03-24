@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDownIcon, LoaderIcon } from './icons';
+import { useState, useEffect } from 'react';
+import { ChevronDownIcon } from './icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Markdown } from './markdown';
 
@@ -15,6 +15,39 @@ export function MessageReasoning({
   reasoning,
 }: MessageReasoningProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [cleanReasoning, setCleanReasoning] = useState('');
+  const dots = ['', '.', '..', '...'];
+  const [dotIndex, setDotIndex] = useState(0);
+
+  // Animated dots effect
+  useEffect(() => {
+    if (isLoading) {
+      const interval = setInterval(() => {
+        setDotIndex((prevIndex) => (prevIndex + 1) % dots.length);
+      }, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [isLoading, dots.length]);
+
+  // Enhanced debugging and tag cleaning
+  useEffect(() => {
+    console.log(
+      'MessageReasoning component rendered with reasoning:',
+      reasoning,
+    );
+
+    if (reasoning) {
+      // Strip out <think> and </think> tags
+      const cleaned = reasoning
+        .replace(/<think>/g, '')
+        .replace(/<\/think>/g, '')
+        .trim();
+
+      console.log('Cleaned reasoning:', cleaned);
+      setCleanReasoning(cleaned);
+    }
+  }, [reasoning]);
 
   const variants = {
     collapsed: {
@@ -35,14 +68,24 @@ export function MessageReasoning({
     <div className="flex flex-col">
       {isLoading ? (
         <div className="flex flex-row gap-2 items-center">
-          <div className="font-medium">Reasoning</div>
-          <div className="animate-spin">
-            <LoaderIcon />
-          </div>
+          <motion.div
+            className="font-medium flex"
+            animate={{
+              opacity: [0.6, 1, 0.6],
+              transition: {
+                repeat: Number.POSITIVE_INFINITY,
+                duration: 1.8,
+                ease: 'easeInOut',
+                times: [0, 0.5, 1],
+              },
+            }}
+          >
+            Reasoning{dots[dotIndex]}
+          </motion.div>
         </div>
       ) : (
         <div className="flex flex-row gap-2 items-center">
-          <div className="font-medium">Reasoned for a few seconds</div>
+          <div className="font-medium">Thought Process</div>
           <button
             data-testid="message-reasoning-toggle"
             type="button"
@@ -69,7 +112,7 @@ export function MessageReasoning({
             style={{ overflow: 'hidden' }}
             className="pl-4 text-zinc-600 dark:text-zinc-400 border-l flex flex-col gap-4"
           >
-            <Markdown>{reasoning}</Markdown>
+            <Markdown>{cleanReasoning || reasoning}</Markdown>
           </motion.div>
         )}
       </AnimatePresence>

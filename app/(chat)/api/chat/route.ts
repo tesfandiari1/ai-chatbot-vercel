@@ -1,5 +1,5 @@
+import type { UIMessage } from 'ai';
 import {
-  UIMessage,
   appendResponseMessages,
   createDataStreamResponse,
   smoothStream,
@@ -149,6 +149,24 @@ export async function POST(request: Request) {
         });
 
         result.consumeStream();
+
+        // Debug logging for reasoning extraction
+        let reasoningDebug = '';
+        // Note: safely accessing internal properties for debugging
+        // @ts-ignore - Accessing private property for debugging
+        const stream = result.rawStream;
+        if (stream) {
+          stream.on('data', (chunk: any) => {
+            if (chunk.type === 'reasoning') {
+              reasoningDebug += chunk.textDelta || '';
+              console.log('Reasoning delta received:', chunk.textDelta);
+            }
+          });
+
+          stream.on('end', () => {
+            console.log('Total reasoning collected:', reasoningDebug);
+          });
+        }
 
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,

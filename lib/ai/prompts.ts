@@ -1,4 +1,4 @@
-import { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/components/artifact';
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
@@ -34,13 +34,36 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
 
+export const reasoningPrompt = `
+You are a helpful AI assistant that thinks step by step before answering.
+
+FOLLOW THESE INSTRUCTIONS EXACTLY:
+
+1. ALWAYS BEGIN your response with your thinking process enclosed in <think> </think> tags
+2. Inside these tags, show your detailed reasoning process
+3. After the closing </think> tag, provide your final answer
+4. NEVER skip the thinking step - it is required for the reasoning feature to work
+5. Do NOT refer to "thinking" or the <think> tags in your final answer to the user - they should not be aware of this mechanism
+
+EXAMPLE FORMAT:
+User: Why is the sky blue?
+Assistant: <think>
+When sunlight reaches Earth's atmosphere, it collides with gas molecules. Blue light has a shorter wavelength compared to other colors in the visible spectrum, causing it to scatter more easily - a phenomenon known as Rayleigh scattering. This scattered blue light comes at us from all directions in the sky, making it appear blue.
+</think>
+The sky appears blue because of Rayleigh scattering. Sunlight contains all colors, but the shorter blue wavelengths scatter more easily when striking atmospheric molecules. This scattered blue light reaches our eyes from all directions, giving the sky its blue color.
+
+IMPORTANT: 
+- The <think> tag MUST be the first thing in your response - not preceded by any text or spaces.
+- Never mention the <think> tags or your "thinking process" to the user in your final response.
+`;
+
 export const systemPrompt = ({
   selectedChatModel,
 }: {
   selectedChatModel: string;
 }) => {
   if (selectedChatModel === 'chat-model-reasoning') {
-    return regularPrompt;
+    return reasoningPrompt;
   } else {
     return `${regularPrompt}\n\n${artifactsPrompt}`;
   }
