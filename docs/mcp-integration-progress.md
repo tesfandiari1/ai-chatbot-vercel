@@ -14,6 +14,8 @@ The vercel-labs/mcp-on-vercel repository provides a framework for running an MCP
 
 https://github.com/vercel-labs/mcp-on-vercel
 
+> **Note**: We maintain a reference copy of the `mcp-on-vercel` template in the `/mcp-template` directory. This is for reference purposes only and is not part of the actual implementation. The actual MCP implementation is in `/lib/mcp` and `/api/mcp`. The reference template is excluded from Git tracking.
+
 ### Integration Benefits
 
 Integrating MCP into our current AI chatbot will provide several benefits:
