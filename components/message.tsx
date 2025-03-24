@@ -253,7 +253,7 @@ export const ThinkingMessage = () => {
     }, 500); // 500ms animation speed for smooth transition
 
     return () => clearInterval(interval);
-  }, []);
+  }, [dots.length]);
 
   return (
     <motion.div

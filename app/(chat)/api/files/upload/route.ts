@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     // Fix the type mismatch when getting filename
-    let filename;
+    let filename: string;
     const fileObj = formData.get('file');
     if (fileObj instanceof File) {
       filename = fileObj.name;
