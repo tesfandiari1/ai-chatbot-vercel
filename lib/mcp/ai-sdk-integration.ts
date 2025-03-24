@@ -4,7 +4,7 @@
  * This file integrates the MCP client with the AI SDK to enable context-aware AI interactions.
  */
 
-import { createAI, createStreamableUI } from 'ai/rsc';
+import { createAI } from 'ai/rsc';
 import { createMcpContextProvider } from './client';
 
 export function createMcpAI() {
@@ -15,17 +15,13 @@ export function createMcpAI() {
 
   // Create an AI instance with MCP integration
   return createAI({
-    provider: {
-      id: 'mcp-enhanced',
-      name: 'MCP-Enhanced Provider',
-    },
     actions: {
       // Call a tool in the MCP server
-      callTool: async function (
+      callTool: async (
         name: string,
         args: Record<string, any>,
         conversationId: string,
-      ) {
+      ) => {
         // Get the MCP client for this conversation
         const mcpClient = await mcpContextProvider.getContext(conversationId);
 
@@ -46,13 +42,16 @@ export function createMcpAI() {
       },
 
       // Get information from a resource
-      getResource: async function (uri: string, conversationId: string) {
+      getResource: async (uri: string, conversationId: string) => {
         // Get the MCP client for this conversation
         const mcpClient = await mcpContextProvider.getContext(conversationId);
 
         try {
-          // Read the resource using the MCP client
-          const resource = await mcpClient.readResource(uri);
+          // Read the resource using the MCP client with properly formatted URI object
+          const resource = await mcpClient.readResource({
+            uri: uri,
+            _meta: {}, // Include empty metadata object as required by the MCP protocol
+          });
           return resource;
         } catch (error) {
           console.error(`Error reading MCP resource ${uri}:`, error);
@@ -63,7 +62,7 @@ export function createMcpAI() {
       },
 
       // List available resources
-      listResources: async function (conversationId: string) {
+      listResources: async (conversationId: string) => {
         // Get the MCP client for this conversation
         const mcpClient = await mcpContextProvider.getContext(conversationId);
 
@@ -80,7 +79,7 @@ export function createMcpAI() {
       },
 
       // Cleanup when the conversation is done
-      cleanup: async function (conversationId: string) {
+      cleanup: async (conversationId: string) => {
         await mcpContextProvider.deleteContext(conversationId);
       },
     },

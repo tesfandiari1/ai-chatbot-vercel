@@ -1,9 +1,7 @@
 import {
   Client,
-  ClientOptions,
 } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-import crypto from 'node:crypto';
 
 export interface MCPClientOptions {
   serverUrl?: string;

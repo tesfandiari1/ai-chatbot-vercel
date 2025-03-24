@@ -1,5 +1,5 @@
 // Script to test the MCP server endpoint
-const { exec } = require('child_process');
+const { exec } = require('node:child_process');
 
 // Create a curl command to test the MCP server
 const testMcpServer = () => {
@@ -34,7 +34,7 @@ const testMcpServer = () => {
       console.log(JSON.stringify(response, null, 2));
 
       // Check for success
-      if (response.result && response.result.tools) {
+      if (response.result?.tools) {
         console.log(
           `\nSuccess! Found ${Object.keys(response.result.tools).length} tools available.`,
         );

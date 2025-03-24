@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment, Message, UIMessage } from 'ai';
+import type { Attachment, UIMessage } from 'ai';
 import cx from 'classnames';
 import type React from 'react';
 import {
@@ -22,7 +22,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 function PureMultimodalInput({
   chatId,
@@ -54,42 +54,47 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight();
-    }
-  }, []);
-
-  const adjustHeight = () => {
+  const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
-  };
+  }, []);
 
-  const resetHeight = () => {
+  const resetHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = '98px';
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      adjustHeight();
+    }
+  }, [adjustHeight]);
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     'input',
     '',
   );
 
+  // Use a ref to track initialization status
+  const isInitializedRef = useRef(false);
+
   useEffect(() => {
+    // Only run once after hydration
+    if (isInitializedRef.current) return;
+
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
       setInput(finalValue);
       adjustHeight();
+      isInitializedRef.current = true;
     }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [localStorageInput, setInput, adjustHeight]);
 
   useEffect(() => {
     setLocalStorageInput(input);
@@ -124,6 +129,7 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
+    resetHeight,
   ]);
 
   const uploadFile = async (file: File) => {

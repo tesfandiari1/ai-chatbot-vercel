@@ -1,14 +1,15 @@
 import getRawBody from 'raw-body';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import type { IncomingHttpHeaders } from 'node:http';
-import type { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
-import { IncomingMessage, ServerResponse } from 'node:http';
+import {
+  IncomingMessage,
+  type ServerResponse,
+  type IncomingHttpHeaders,
+} from 'node:http';
 import { Redis } from '@upstash/redis';
 import { Socket } from 'node:net';
 import { Readable } from 'node:stream';
 import crypto from 'node:crypto';
-import * as http from 'node:http';
 
 // Default max duration for the function (in seconds)
 const DEFAULT_MAX_DURATION = 60;

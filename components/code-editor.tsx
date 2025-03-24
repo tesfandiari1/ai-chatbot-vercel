@@ -6,7 +6,7 @@ import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import React, { memo, useEffect, useRef } from 'react';
-import { Suggestion } from '@/lib/db/schema';
+import type { Suggestion } from '@/lib/db/schema';
 
 type EditorProps = {
   content: string;
@@ -20,18 +20,24 @@ type EditorProps = {
 function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
+  const initializeOnceRef = useRef(false);
 
   useEffect(() => {
+    if (initializeOnceRef.current) return;
+
     if (containerRef.current && !editorRef.current) {
-      const startState = EditorState.create({
+      const state = EditorState.create({
         doc: content,
         extensions: [basicSetup, python(), oneDark],
       });
 
-      editorRef.current = new EditorView({
-        state: startState,
+      const view = new EditorView({
+        state,
         parent: containerRef.current,
       });
+
+      editorRef.current = view;
+      initializeOnceRef.current = true;
     }
 
     return () => {
@@ -40,9 +46,7 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
         editorRef.current = null;
       }
     };
-    // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
-  }, []);
+  }, [content]);
 
   useEffect(() => {
     if (editorRef.current) {

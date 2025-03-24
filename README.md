@@ -67,8 +67,8 @@ A powerful, enterprise-ready AI chatbot built with Next.js and the Vercel AI SDK
 
 ### AI/ML
 - **Multiple LLM Providers**:
-  - xAI (default with `grok-2-1212`)
   - OpenAI
+  - xAI
   - Groq
   - Support for additional providers
 - **Model Context Protocol (MCP)**: Standardized context provider for LLMs
@@ -122,7 +122,33 @@ The application follows a layered architecture organized around the Next.js App 
 
 ## Model Providers
 
-This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+This template ships with [OpenAI](https://openai.com) as the default chat model provider. With the [AI SDK](https://sdk.vercel.ai/docs), you can also use other providers like [xAI](https://x.ai), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+
+### MCP SDK Integration
+The application uses the Model Context Protocol (MCP) TypeScript SDK for enhanced context management and standardized interactions with language models. Key features include:
+
+- **Unified Context Management**: Standardized context handling across different LLM providers
+- **Type-Safe Operations**: Full TypeScript support for all MCP operations
+- **Resource Templates**: Structured handling of dynamic resources with validation
+- **Tool Integration**: Type-safe function calling and tool management
+- **Error Handling**: Comprehensive error handling and validation patterns
+
+Example MCP configuration:
+```typescript
+import { createMCPClient } from '@/lib/mcp/client';
+
+const mcpClient = createMCPClient({
+  serverUrl: process.env.MCP_SERVER_URL,
+  capabilities: {
+    tools: {
+      // Tool definitions
+    },
+    resources: {
+      // Resource definitions
+    }
+  }
+});
+```
 
 ## Installation
 
@@ -131,10 +157,16 @@ This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat m
 - pnpm (recommended) or npm/yarn
 - PostgreSQL database
 - Redis (for MCP integration)
+- OpenAI API key
 
 ### Environment Setup
 1. Clone the repository
-2. Set up environment variables following `.env.example`
+2. Copy `.env.example` to `.env` and configure:
+   ```bash
+   OPENAI_API_KEY=your_api_key
+   MCP_SERVER_URL=your_mcp_server_url
+   REDIS_URL=your_redis_url  # Required for MCP
+   ```
 3. Install dependencies:
    ```bash
    pnpm install
@@ -159,10 +191,32 @@ Your app template should now be running on [localhost:3000](http://localhost:300
 
 ## Deployment
 
-### Deploy to Vercel
-Deploy your own version of the Next.js AI Chatbot to Vercel with one click:
+### Pre-deployment Checks
+Before deploying to Vercel, run the following checks to ensure code quality and build stability:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET&envDescription=Generate%20a%20random%20secret%20to%20use%20for%20authentication&envLink=https%3A%2F%2Fgenerate-secret.vercel.app%2F32&project-name=my-awesome-chatbot&repository-name=my-awesome-chatbot&demo-title=AI%20Chatbot&demo-description=An%20Open-Source%20AI%20Chatbot%20Template%20Built%20With%20Next.js%20and%20the%20AI%20SDK%20by%20Vercel&demo-url=https%3A%2F%2Fchat.vercel.ai&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22grok%22%2C%22integrationSlug%22%3A%22xai%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22api-key%22%2C%22integrationSlug%22%3A%22groq%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D)
+```bash
+# 1. Run linting checks
+pnpm lint
+
+# 2. Verify type safety
+npx tsc --noEmit
+
+# 3. Test production build
+pnpm build
+```
+
+If you encounter build cache issues, clean the cache and rebuild:
+```bash
+rm -rf .next && pnpm build
+```
+
+### Build Optimization
+The application is optimized for production with:
+- Server-side rendering for improved performance
+- Optimized bundle sizes (First Load JS shared: 108 kB)
+- Efficient chunk splitting and code splitting
+- Static page generation where possible
+- Middleware optimization for auth and routing
 
 ### Required Vercel Resources
 - Vercel Postgres (powered by Neon)

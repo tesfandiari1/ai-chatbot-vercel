@@ -24,7 +24,7 @@ async function testRedisConnection() {
     });
 
     // Test connection
-    const testKey = 'mcp-test-key-' + Date.now();
+    const testKey = `mcp-test-key-${Date.now()}`;
     const testValue = `MCP Redis test at ${new Date().toISOString()}`;
 
     console.log(`Setting key: ${testKey}`);

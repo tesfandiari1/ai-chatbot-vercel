@@ -4,6 +4,12 @@ import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
 
+// Define consistent runtime configuration
+export const runtime = 'nodejs';
+
+// Limit file size
+export const maxDuration = 30;
+
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
   file: z
@@ -34,11 +40,17 @@ export async function POST(request: Request) {
   const session = await auth();
 
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   if (request.body === null) {
-    return new Response('Request body is empty', { status: 400 });
+    return NextResponse.json(
+      { error: 'Request body is empty' },
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   try {
@@ -46,7 +58,10 @@ export async function POST(request: Request) {
     const file = formData.get('file') as Blob;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No file uploaded' },
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     const validatedFile = FileSchema.safeParse({ file });
@@ -56,7 +71,10 @@ export async function POST(request: Request) {
         .map((error) => error.message)
         .join(', ');
 
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     // Fix the type mismatch when getting filename
@@ -70,21 +88,42 @@ export async function POST(request: Request) {
       filename = `upload-${Date.now()}.${fileType}`;
     }
 
-    const fileBuffer = await file.arrayBuffer();
+    // Add a logging message for tracking uploads
+    console.log(
+      `Processing file upload: ${filename} (${file.size} bytes, ${file.type})`,
+    );
 
     try {
+      const fileBuffer = await file.arrayBuffer();
       const data = await put(`${filename}`, fileBuffer, {
         access: 'public',
       });
 
-      return NextResponse.json(data);
+      // Log successful upload
+      console.log(`File uploaded successfully: ${data.url}`);
+
+      return NextResponse.json(data, {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch (error) {
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+      console.error('File upload to blob storage failed:', error);
+      return NextResponse.json(
+        {
+          error: 'Upload failed',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      );
     }
   } catch (error) {
+    console.error('Failed to process file upload request:', error);
     return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 },
+      {
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
 }

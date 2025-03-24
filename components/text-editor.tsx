@@ -40,11 +40,14 @@ function PureEditor({
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
+  const initializeOnceRef = useRef(false);
 
   useEffect(() => {
+    if (initializeOnceRef.current) return;
+
     if (containerRef.current && !editorRef.current) {
       const state = EditorState.create({
-        doc: buildDocumentFromContent(content),
+        doc: buildDocumentFromContent(content || ''),
         plugins: [
           ...exampleSetup({ schema: documentSchema, menuBar: false }),
           inputRules({
@@ -64,6 +67,7 @@ function PureEditor({
       editorRef.current = new EditorView(containerRef.current, {
         state,
       });
+      initializeOnceRef.current = true;
     }
 
     return () => {
@@ -72,9 +76,7 @@ function PureEditor({
         editorRef.current = null;
       }
     };
-    // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
-  }, []);
+  }, [content, onSaveContent, suggestions]);
 
   useEffect(() => {
     if (editorRef.current) {

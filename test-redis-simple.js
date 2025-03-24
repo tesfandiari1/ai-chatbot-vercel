@@ -1,6 +1,6 @@
 // Super simple script to test Redis connection using curl
-const { exec } = require('child_process');
-const fs = require('fs');
+const { exec } = require('node:child_process');
+const fs = require('node:fs');
 
 // Read environment variables from .env.local
 const envContent = fs.readFileSync('.env.local', 'utf8');
@@ -27,9 +27,7 @@ if (!redisUrl || !redisToken) {
 console.log('Redis URL:', redisUrl);
 console.log(
   'Token:',
-  redisToken.substring(0, 5) +
-    '...' +
-    redisToken.substring(redisToken.length - 5),
+  `${redisToken.substring(0, 5)}...${redisToken.substring(redisToken.length - 5)}`,
 );
 
 // Create a test key

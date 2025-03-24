@@ -25,7 +25,10 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
+import { NextResponse } from 'next/server';
 
+// Define consistent runtime configuration
+export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
@@ -43,13 +46,19 @@ export async function POST(request: Request) {
     const session = await auth();
 
     if (!session || !session.user || !session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
-      return new Response('No user message found', { status: 400 });
+      return NextResponse.json(
+        { error: 'No user message found' },
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     const chat = await getChatById({ id });
@@ -62,7 +71,10 @@ export async function POST(request: Request) {
       await saveChat({ id, userId: session.user.id, title });
     } else {
       if (chat.userId !== session.user.id) {
-        return new Response('Unauthorized', { status: 401 });
+        return NextResponse.json(
+          { error: 'You do not have permission to access this chat' },
+          { status: 403, headers: { 'Content-Type': 'application/json' } },
+        );
       }
     }
 
@@ -137,8 +149,8 @@ export async function POST(request: Request) {
                     },
                   ],
                 });
-              } catch (_) {
-                console.error('Failed to save chat');
+              } catch (error) {
+                console.error('Failed to save chat:', error);
               }
             }
           },
@@ -152,8 +164,8 @@ export async function POST(request: Request) {
 
         // Debug logging for reasoning extraction
         let reasoningDebug = '';
-        // Note: safely accessing internal properties for debugging
-        // @ts-ignore - Accessing private property for debugging
+        // Access internal AI stream properties for debugging purposes
+        // @ts-expect-error - Accessing stream implementation details for debugging
         const stream = result.rawStream;
         if (stream) {
           stream.on('data', (chunk: any) => {
@@ -172,14 +184,17 @@ export async function POST(request: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
-        return 'Oops, an error occured!';
+      onError: (error) => {
+        console.error('Error in stream processing:', error);
+        return 'Oops, an error occurred while processing your request. Please try again.';
       },
     });
   } catch (error) {
-    return new Response('An error occurred while processing your request!', {
-      status: 404,
-    });
+    console.error('Unexpected error in chat API route:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred. Please try again later.' },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 }
 
@@ -188,28 +203,49 @@ export async function DELETE(request: Request) {
   const id = searchParams.get('id');
 
   if (!id) {
-    return new Response('Not Found', { status: 404 });
+    return NextResponse.json(
+      { error: 'Chat ID is required' },
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   const session = await auth();
 
   if (!session || !session.user) {
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   try {
     const chat = await getChatById({ id });
 
+    if (!chat) {
+      return NextResponse.json(
+        { error: 'Chat not found' },
+        { status: 404, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
     if (chat.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
+      return NextResponse.json(
+        { error: 'You do not have permission to delete this chat' },
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     await deleteChatById({ id });
 
-    return new Response('Chat deleted', { status: 200 });
+    return NextResponse.json(
+      { message: 'Chat deleted successfully' },
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
   } catch (error) {
-    return new Response('An error occurred while processing your request!', {
-      status: 500,
-    });
+    console.error('Error deleting chat:', error);
+    return NextResponse.json(
+      { error: 'An error occurred while deleting the chat' },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 }
