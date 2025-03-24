@@ -27,7 +27,7 @@ export const myProvider = isTestEnvironment
       languageModels: {
         'chat-model': openai('gpt-4o'),
         'chat-model-reasoning': wrapLanguageModel({
-          model: groq('deepseek-r1-distill-llama-70b'),
+          model: openai('o3-mini-2025-01-31'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
         'title-model': openai('gpt-3.5-turbo'),
