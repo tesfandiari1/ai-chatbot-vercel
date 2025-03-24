@@ -8,13 +8,26 @@ import { auth } from '@/app/(auth)/auth';
 const FileSchema = z.object({
   file: z
     .instanceof(Blob)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'File size should be less than 5MB',
+    .refine((file) => file.size <= 10 * 1024 * 1024, {
+      message: 'File size should be less than 10MB',
     })
-    // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
-    }),
+    // Expand allowed file types
+    .refine(
+      (file) =>
+        [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'application/pdf',
+          'text/plain',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ].includes(file.type),
+      {
+        message:
+          'Unsupported file type. Supported types: JPEG, PNG, GIF, PDF, TXT, DOC, DOCX',
+      },
+    ),
 });
 
 export async function POST(request: Request) {
@@ -46,8 +59,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    // Get filename from formData since Blob doesn't have name property
-    const filename = (formData.get('file') as File).name;
+    // Fix the type mismatch when getting filename
+    let filename;
+    const fileObj = formData.get('file');
+    if (fileObj instanceof File) {
+      filename = fileObj.name;
+    } else {
+      // Generate a unique filename for Blob objects without names
+      const fileType = file.type.split('/')[1] || 'bin';
+      filename = `upload-${Date.now()}.${fileType}`;
+    }
+
     const fileBuffer = await file.arrayBuffer();
 
     try {
