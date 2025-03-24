@@ -8,7 +8,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
  * This initializes a Model Context Protocol server with tools and capabilities
  * following best practices from the MCP TypeScript SDK
  */
-const handler = initializeMcpApiHandler(
+const handler = await initializeMcpApiHandler(
   (server: McpServer) => {
     // Add echo tool with zod schema validation
     server.tool(

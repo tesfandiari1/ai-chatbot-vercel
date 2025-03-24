@@ -14,6 +14,18 @@ import crypto from 'node:crypto';
 // Default max duration for the function (in seconds)
 const DEFAULT_MAX_DURATION = 60;
 
+// Add Redis connection validation function
+async function validateRedisConnection(redis: Redis): Promise<boolean> {
+  try {
+    const pingResult = await redis.ping();
+    console.log('Redis ping result:', pingResult);
+    return true;
+  } catch (error) {
+    console.error('Redis connection validation failed:', error);
+    return false;
+  }
+}
+
 interface SerializedRequest {
   requestId: string;
   url: string;
@@ -35,7 +47,7 @@ async function validateToken(token: string): Promise<boolean> {
   );
 }
 
-export function initializeMcpApiHandler(
+export async function initializeMcpApiHandler(
   initializeServer: (server: McpServer) => void,
   serverOptions: Record<string, unknown> = {},
 ) {
@@ -46,33 +58,96 @@ export function initializeMcpApiHandler(
   );
 
   // Get Redis URL from environment variables
-  const redisUrl = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken =
-    process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const redisUrl = process.env.KV_REST_API_URL;
+  const redisToken = process.env.KV_REST_API_TOKEN;
 
-  if (!redisUrl) {
+  if (!redisUrl || !redisToken) {
+    console.error('Missing Redis credentials:', {
+      hasUrl: !!redisUrl,
+      hasToken: !!redisToken,
+    });
     throw new Error(
-      'Redis URL environment variable (REDIS_URL or UPSTASH_REDIS_REST_URL) is not set',
+      'Redis credentials are not configured. Please set KV_REST_API_URL and KV_REST_API_TOKEN environment variables.',
     );
   }
 
-  if (!redisToken) {
-    throw new Error(
-      'Redis token (KV_REST_API_TOKEN or UPSTASH_REDIS_REST_TOKEN) is not set',
+  // Initialize Redis clients with fallback for development
+  let redis:
+    | Redis
+    | {
+        get: (key: string) => Promise<any>;
+        set: (key: string, value: string) => Promise<void>;
+        del: (key: string) => Promise<void>;
+        hset: (key: string, value: Record<string, any>) => Promise<void>;
+      };
+  let redisPublisher: Redis | typeof redis;
+
+  if (process.env.NODE_ENV === 'development') {
+    // In development, use a simple in-memory store if Redis is not configured
+    console.warn(
+      'Using in-memory store for development. Redis connection will not persist.',
     );
+    const inMemoryStore = new Map();
+    redis = {
+      get: async (key: string) => inMemoryStore.get(key),
+      set: async (key: string, value: string) => {
+        inMemoryStore.set(key, value);
+        return;
+      },
+      del: async (key: string) => {
+        inMemoryStore.delete(key);
+        return;
+      },
+      hset: async (key: string, value: Record<string, any>) => {
+        inMemoryStore.set(key, value);
+        return;
+      },
+    };
+    redisPublisher = redis;
+  } else {
+    try {
+      console.log('Initializing Redis connection...');
+      // Ensure the URL is properly formatted for Upstash Redis
+      const formattedUrl = redisUrl.startsWith('https://')
+        ? redisUrl
+        : `https://${redisUrl}`;
+
+      console.log('Connecting to Redis at:', formattedUrl);
+
+      redis = new Redis({
+        url: formattedUrl,
+        token: redisToken,
+        retry: {
+          retries: 3,
+          backoff: (retryCount: number) =>
+            Math.min(1000 * Math.pow(2, retryCount), 3000),
+        },
+      });
+
+      // Validate connection before proceeding
+      const isValid = await validateRedisConnection(redis);
+      if (!isValid) {
+        throw new Error('Redis connection validation failed');
+      }
+
+      redisPublisher = new Redis({
+        url: formattedUrl,
+        token: redisToken,
+        retry: {
+          retries: 3,
+          backoff: (retryCount: number) =>
+            Math.min(1000 * Math.pow(2, retryCount), 3000),
+        },
+      });
+
+      console.log('Redis connection established successfully');
+    } catch (error) {
+      console.error('Redis initialization failed:', error);
+      throw new Error(
+        `Failed to initialize Redis connection: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
-
-  // Initialize Redis clients
-  const redis = new Redis({
-    url: redisUrl,
-    token: redisToken,
-  });
-
-  // Create a second client for publishing
-  const redisPublisher = new Redis({
-    url: redisUrl,
-    token: redisToken,
-  });
 
   // Store active servers and transports
   const activeConnections = new Map<
@@ -113,8 +188,11 @@ export function initializeMcpApiHandler(
 
     // Handle SSE connections (connect to the server)
     if (url.pathname === '/sse') {
+      const logContext = '[SSE]';
       try {
+        console.log(`${logContext} Starting SSE connection setup...`);
         await authenticate(req);
+
         // Add proper headers
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
@@ -124,74 +202,139 @@ export function initializeMcpApiHandler(
 
         // Generate proper connection ID using UUIDs
         const connectionId = crypto.randomUUID();
+        console.log(
+          `${logContext} New SSE connection with ID: ${connectionId}`,
+        );
 
         // Create transport with post message endpoint for better SDK compliance
         const transport = new SSEServerTransport('/api/mcp/server', res);
 
-        // Store in Redis for state persistence
-        await redis.hset(`mcp:connections:${connectionId}`, {
-          createdAt: Date.now(),
-          active: true,
-        });
-
-        // Log setup
-        const logContext = `[${connectionId}]`;
-        console.log(`${logContext} Setting up SSE connection`);
+        // Define connectionLogContext at the top level of the try block
+        const connectionLogContext = `[${connectionId}]`;
 
         try {
+          // Store in Redis for state persistence
+          await redis.hset(`mcp:connections:${connectionId}`, {
+            createdAt: Date.now(),
+            active: true,
+          });
+
+          // Log setup
+          console.log(`${connectionLogContext} Setting up SSE connection`);
+
           // Create an MCP server instance with required parameters
           const server = new McpServer({
             name: 'MCP-Server',
             version: '1.0.0',
+            capabilities: {
+              resources: {},
+              tools: {},
+              prompts: {},
+            },
             ...serverOptions,
           });
 
           // Set up the server with provided configuration
-          initializeServer(server);
+          try {
+            initializeServer(server);
+            console.log(
+              `${connectionLogContext} Server initialized successfully`,
+            );
+          } catch (initError) {
+            console.error(
+              `${connectionLogContext} Server initialization failed:`,
+              initError,
+            );
+            throw new Error(
+              `Server initialization failed: ${initError instanceof Error ? initError.message : String(initError)}`,
+            );
+          }
 
           // Store the connection
           activeConnections.set(connectionId, { server, transport });
+          console.log(
+            `${connectionLogContext} Connection stored in active connections`,
+          );
 
           // Set up Redis channel for this connection's context
           const contextKey = `mcp:context:${connectionId}`;
 
           // Implement proper state management
           const saveState = async (data: unknown) => {
-            await redis.set(contextKey, JSON.stringify(data));
+            try {
+              await redis.set(contextKey, JSON.stringify(data));
+              console.log(`${connectionLogContext} State saved successfully`);
+            } catch (error) {
+              console.error(
+                `${connectionLogContext} Error saving state:`,
+                error,
+              );
+              throw error;
+            }
           };
 
           const loadState = async () => {
-            const state = await redis.get(contextKey);
-            return state ? JSON.parse(state as string) : null;
+            try {
+              const state = await redis.get(contextKey);
+              return state ? JSON.parse(state as string) : null;
+            } catch (error) {
+              console.error(
+                `${connectionLogContext} Error loading state:`,
+                error,
+              );
+              return null;
+            }
           };
 
-          // Load previous state if needed - manual approach
-          // Since the SDK doesn't expose direct state management methods,
-          // we'll use Redis to track session state independently
+          // Load previous state if needed
           const previousState = await loadState();
           if (previousState) {
-            // We can't directly load state into the server
-            // We can use this data for application-specific state management
-            console.log(`${logContext} Previous state found`);
+            console.log(
+              `${connectionLogContext} Previous state found and loaded`,
+            );
           }
 
           // Connect the server to the transport
-          await server.connect(transport);
+          try {
+            await server.connect(transport);
+            console.log(
+              `${connectionLogContext} Server connected to transport successfully`,
+            );
+          } catch (connectError) {
+            console.error(
+              `${connectionLogContext} Failed to connect server to transport:`,
+              connectError,
+            );
+            throw new Error(
+              `Transport connection failed: ${connectError instanceof Error ? connectError.message : String(connectError)}`,
+            );
+          }
 
           // Set up cleanup on connection close
           const cleanup = async () => {
             try {
-              console.log(`${logContext} Cleaning up connection`);
+              console.log(
+                `${connectionLogContext} Starting connection cleanup`,
+              );
 
               // Remove from active connections
               activeConnections.delete(connectionId);
+              console.log(
+                `${connectionLogContext} Removed from active connections`,
+              );
 
               // Clean up Redis context
               await redis.del(contextKey);
+              console.log(`${connectionLogContext} Redis context cleaned up`);
 
-              console.log(`${logContext} Connection cleaned up`);
+              console.log(
+                `${connectionLogContext} Connection cleanup completed successfully`,
+              );
             } catch (error) {
-              console.error(`${logContext} Error during cleanup:`, error);
+              console.error(
+                `${connectionLogContext} Error during cleanup:`,
+                error,
+              );
             }
           };
 
@@ -200,24 +343,53 @@ export function initializeMcpApiHandler(
 
           // Keep connection alive with heartbeats
           const heartbeatInterval = setInterval(() => {
-            res.write(': heartbeat\n\n');
+            try {
+              res.write(': heartbeat\n\n');
+            } catch (error) {
+              console.error(
+                `${connectionLogContext} Error sending heartbeat:`,
+                error,
+              );
+              clearInterval(heartbeatInterval);
+            }
           }, 30000);
 
           // Clean up interval on close
-          req.socket?.on('close', () => clearInterval(heartbeatInterval));
+          req.socket?.on('close', () => {
+            clearInterval(heartbeatInterval);
+            console.log(`${connectionLogContext} Heartbeat interval cleared`);
+          });
 
-          console.log(`${logContext} SSE connection established`);
+          console.log(
+            `${connectionLogContext} SSE connection established successfully`,
+          );
         } catch (error) {
-          console.error(`Error setting up SSE connection:`, error);
+          console.error(
+            `${connectionLogContext} Error setting up SSE connection:`,
+            error,
+          );
           res.statusCode = 500;
-          res.end('Error setting up SSE connection');
+          res.setHeader('Content-Type', 'application/json');
+          res.end(
+            JSON.stringify({
+              error: 'Error setting up SSE connection',
+              details: error instanceof Error ? error.message : String(error),
+              stack: error instanceof Error ? error.stack : undefined,
+            }),
+          );
         }
 
         return;
       } catch (error) {
-        console.error(`Error setting up SSE connection:`, error);
+        console.error(`${logContext} Authentication error:`, error);
         res.statusCode = 401;
-        res.end('Unauthorized');
+        res.setHeader('Content-Type', 'application/json');
+        res.end(
+          JSON.stringify({
+            error: 'Unauthorized',
+            details: error instanceof Error ? error.message : String(error),
+          }),
+        );
         return;
       }
     }

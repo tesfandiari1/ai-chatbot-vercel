@@ -7,12 +7,14 @@ export default async function handler(
 ) {
   try {
     // Check if we have Redis credentials
-    const restApiUrl =
-      process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-    const restApiToken =
-      process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+    const restApiUrl = process.env.KV_REST_API_URL;
+    const restApiToken = process.env.KV_REST_API_TOKEN;
 
     if (!restApiUrl || !restApiToken) {
+      console.error('Missing Redis credentials:', {
+        hasUrl: !!restApiUrl,
+        hasToken: !!restApiToken,
+      });
       return res.status(500).json({
         success: false,
         error:
@@ -20,9 +22,14 @@ export default async function handler(
       });
     }
 
+    // Ensure the URL is properly formatted for Upstash Redis
+    const formattedUrl = restApiUrl.startsWith('https://')
+      ? restApiUrl
+      : `https://${restApiUrl}`;
+
     // Create a Redis client using the provided credentials
     const redis = new Redis({
-      url: restApiUrl,
+      url: formattedUrl,
       token: restApiToken,
     });
 
@@ -30,8 +37,13 @@ export default async function handler(
     const testKey = 'mcp-test-key';
     const testValue = `MCP Redis is working! ${new Date().toISOString()}`;
 
+    console.log('Attempting to set Redis key...');
     await redis.set(testKey, testValue);
+    console.log('Successfully set Redis key');
+
+    console.log('Attempting to get Redis key...');
     const value = await redis.get(testKey);
+    console.log('Successfully retrieved Redis key');
 
     return res.status(200).json({
       success: true,
@@ -45,6 +57,7 @@ export default async function handler(
       success: false,
       error:
         error instanceof Error ? error.message : 'Failed to connect to Redis',
+      stack: error instanceof Error ? error.stack : undefined,
     });
   }
 }
