@@ -3,7 +3,7 @@
     "api/mcp/server.ts": {
       "maxDuration": 60,
       "memory": 1024,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs@22.x"
     }
   },
   "crons": []
