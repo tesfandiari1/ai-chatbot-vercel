@@ -1,0 +1,4 @@
+[2025-03-25T04:26:29.152Z] Logging to logs/deploy-1742876789149.log
+[2025-03-25T04:26:29.153Z] Checking environment variables...
+[2025-03-25T04:26:29.154Z] .env.local file found
+[31m[2025-03-25T04:26:29.155Z] ERROR: Missing required environment variables: KV_REST_API_URL or UPSTASH_REDIS_REST_URL, KV_REST_API_TOKEN or UPSTASH_REDIS_REST_TOKEN[39m

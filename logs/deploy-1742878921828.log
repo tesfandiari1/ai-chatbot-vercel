@@ -1,0 +1,78 @@
+[2025-03-25T05:02:01.831Z] Logging to logs/deploy-1742878921828.log
+[2025-03-25T05:02:01.832Z] Checking environment variables...
+[2025-03-25T05:02:01.833Z] .env.local file found
+[2025-03-25T05:02:01.833Z] All required environment variables are set
+[2025-03-25T05:02:01.834Z] Running code quality checks...
+[2025-03-25T05:02:01.834Z] Skipping lint checks (--skip-lint flag provided)
+[2025-03-25T05:02:01.834Z] Checking TypeScript types...
+[2025-03-25T05:02:03.508Z] TypeScript checks passed successfully
+[2025-03-25T05:02:03.508Z] Setting up databases...
+[2025-03-25T05:02:03.508Z] Starting PostgreSQL in Docker...
+[2025-03-25T05:02:03.510Z] Starting Redis in Docker...
+[31m[2025-03-25T05:02:03.723Z] ERROR: Failed to set up Redis: Command failed: docker ps -q -f name=uniwise-redis
+Cannot connect to the Docker daemon at unix:///Users/tristinesfandiari/.docker/run/docker.sock. Is the docker daemon running?
+[39m
+[33m[2025-03-25T05:02:03.723Z] WARNING: Continuing without Redis in development mode[39m
+[2025-03-25T05:02:03.732Z] ERROR: Docker is not running. Please start Docker Desktop or Docker daemon first.
+[31m[2025-03-25T05:02:33.511Z] ERROR: Failed to set up PostgreSQL: PostgreSQL setup timed out after 30 seconds[39m
+[33m[2025-03-25T05:02:33.511Z] WARNING: Continuing without PostgreSQL in development mode[39m
+[2025-03-25T05:02:33.511Z] Skipping Next.js build (--skip-build flag provided or in dev mode)
+[2025-03-25T05:02:33.511Z] Starting applications in development mode...
+[2025-03-25T05:02:33.512Z] Starting Next.js in development mode on port 3000...
+[2025-03-25T05:02:33.514Z] Clearing Storybook cache...
+[2025-03-25T05:02:33.514Z] Cleared Storybook cache: ./.storybook/cache
+[2025-03-25T05:02:33.514Z] Cleared Storybook cache: ./node_modules/.cache/storybook
+[2025-03-25T05:02:33.514Z] Starting Storybook on port 6006...
+[2025-03-25T05:02:33.516Z] Starting MCP server on port 8000...
+[2025-03-25T05:02:33.516Z] MCP_SERVER_URL set to http://localhost:8000/api/mcp/server
+[MCP Server] [2025-03-25T05:02:33.646Z] Environment variables loaded from .env.local
+[MCP Server] [2025-03-25T05:02:33.647Z] Starting MCP server on port 8000...
+[Next.js] 
+> ai-chatbot@0.1.0 dev /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel
+> next dev "--" "-p" "3000"
+
+[Storybook] 
+> ai-chatbot@0.1.0 storybook /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel
+> storybook dev -p 6006 "--" "-p" "6006" "--no-manager-cache" "--no-version-updates" "--quiet"
+
+[Next.js] Invalid project directory provided, no such directory: /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/-p
+[Next.js]  ELIFECYCLE  Command failed with exit code 1.
+[31m[2025-03-25T05:02:34.107Z] ERROR: Next.js dev server exited with code 1[39m
+[Storybook] @storybook/core v8.6.9
+
+[MCP Server] [2025-03-25T05:02:34.771Z] Next.js app prepared successfully
+[MCP Server] [2025-03-25T05:02:34.772Z] MCP server is now running at http://localhost:8000
+[MCP Server] [2025-03-25T05:02:34.772Z] MCP endpoint available at http://localhost:8000/api/mcp/server
+[Storybook] [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[Storybook] 
+[Storybook] attention => Storybook now collects completely anonymous telemetry regarding usage.
+This information is used to shape Storybook's roadmap and prioritize features.
+[Storybook] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://storybook.js.org/telemetry
+
+[2025-03-25T05:02:35.518Z] All services started successfully!
+[2025-03-25T05:02:35.518Z] 
+    🚀 Services running:
+      - Next.js: http://localhost:3000
+      - Storybook: http://localhost:6006
+      - PostgreSQL: localhost:5432
+      - Redis: localhost:6379
+      - MCP Server: http://localhost:8000/api/mcp/server
+    
+[1G[0Juniwise> [10G[Storybook] info[Storybook]  => Serving static files from ././public at /
+[Storybook] info => Starting manager..
+[Storybook] WARN No story files found for the specified pattern: app/**/*.stories.@(js|jsx|mjs|ts|tsx)
+[Storybook] info[Storybook]  => Starting preview..
+[Storybook] info Using tsconfig paths for react-docgen
+[Storybook] ╭──────────────────────────────────────────────────────────╮
+│                                                          │
+│   [38;2;162;224;94mStorybook 8.6.9 for experimental-nextjs-vite started[39m   │
+│   216 ms for manager and 761 ms for preview              │
+│                                                          │
+│    Local:            http://localhost:6006/              │
+│    On your network:  http://192.168.1.214:6006/          │
+│                                                          │
+╰──────────────────────────────────────────────────────────╯
+[Storybook] 10:02:38 PM [vite] (client) ✨ new dependencies optimized: sonner, next-auth/react
+[Storybook] 10:02:38 PM [vite] (client) ✨ optimized dependencies changed. reloading
+[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G[1G[0Juniwise> [10G

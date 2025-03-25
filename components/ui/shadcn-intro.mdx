@@ -1,0 +1,73 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="UI/Introduction" />
+
+# shadcn/ui Components
+
+This project uses [shadcn/ui](https://ui.shadcn.com/) for its UI components. shadcn/ui is a collection of reusable components built on top of [Radix UI](https://www.radix-ui.com/) and styled with [Tailwind CSS](https://tailwindcss.com/).
+
+## Key Features
+
+- **Accessibility**: Components are built on top of Radix UI, ensuring proper accessibility.
+- **Customization**: All components are fully customizable with Tailwind CSS.
+- **Themeable**: Supports both light and dark modes.
+- **Type-safe**: Written in TypeScript with full type safety.
+
+## Component Architecture
+
+shadcn/ui components follow a specific architecture:
+
+1. **Base Component**: Typically built with Radix UI primitives.
+2. **Styling**: Applied with Tailwind CSS utility classes.
+3. **Variants**: Often implemented using [Class Variance Authority (cva)](https://cva.style/docs).
+
+## Usage Example
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+export function MyComponent() {
+  return (
+    <Button variant="outline" size="sm">
+      Click me
+    </Button>
+  );
+}
+```
+
+## Available Components
+
+This Storybook documents the following shadcn/ui components used in our project:
+
+- Button
+- Card
+- Input
+- Textarea
+- Select
+- Alert Dialog
+- Dropdown Menu
+- Separator
+- Sheet
+- Tooltip
+- ... and more
+
+## Theming
+
+The components support both light and dark modes. In Storybook, you can toggle between themes using the theme selector in the toolbar.
+
+Each component is styled using CSS variables defined in our `app/globals.css` file, which allows for consistent theming across the application.
+
+## Adding New Components
+
+When adding new shadcn/ui components to the project, follow these steps:
+
+1. Install the component using the shadcn CLI
+2. Create a story file in the same directory as the component
+3. Document all variants and use cases
+4. Add proper accessibility information
+
+## Resources
+
+- [shadcn/ui Documentation](https://ui.shadcn.com/)
+- [Radix UI Documentation](https://www.radix-ui.com/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs) 

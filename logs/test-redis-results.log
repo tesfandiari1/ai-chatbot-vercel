@@ -1,0 +1,7 @@
+Testing Redis connection for MCP state management...
+Creating Upstash Redis client for MCP state management
+Using Redis endpoint: https://kind-glider-40820.upstash.io
+Setting test key: mcp-test-key-1742880753216
+Reading test key...
+Redis test successful!
+Retrieved value: MCP Redis test at 2025-03-25T05:32:33.216Z

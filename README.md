@@ -43,7 +43,7 @@ A powerful, enterprise-ready AI chatbot built with Next.js and the Vercel AI SDK
 ## Features
 
 - **Modern Chat Interface**: Real-time conversational UI with message history and typing indicators
-- **Multi-Model Support**: Switch between different LLM providers (xAI, OpenAI, Groq, etc.)
+- **Multi-Model Support**: Switch between different LLM providers (OpenAI, Groq, etc.)
 - **Server Components**: Optimized rendering and improved performance with React Server Components
 - **Advanced AI Capabilities**:
   - Text generation and chat completions
@@ -60,16 +60,16 @@ A powerful, enterprise-ready AI chatbot built with Next.js and the Vercel AI SDK
 ## Tech Stack
 
 ### Core Technologies
-- **Next.js 14+**: App Router architecture for routing and server-side rendering
-- **React 19**: Utilizing Server Components (RSCs) for optimized rendering
+- **Next.js**: App Router architecture for routing and server-side rendering
+- **React**: Utilizing Server Components (RSCs) for optimized rendering
 - **TypeScript**: Full type safety throughout the codebase
 - **Vercel AI SDK**: Unified API for text generation and tool calls
 
 ### AI/ML
 - **Multiple LLM Providers**:
-  - OpenAI
-  - xAI
+  - OpenAI (default, using GPT-4o)
   - Groq
+  - xAI
   - Support for additional providers
 - **Model Context Protocol (MCP)**: Standardized context provider for LLMs
 
@@ -85,7 +85,7 @@ A powerful, enterprise-ready AI chatbot built with Next.js and the Vercel AI SDK
 - **CodeMirror**: Code editor integration
 
 ### Authentication & Security
-- **NextAuth.js**: Authentication framework for user management
+- **NextAuth.js**: Authentication framework for user management (version 5 beta)
 
 ### Testing
 - **Playwright**: End-to-end testing
@@ -98,6 +98,14 @@ The application follows a layered architecture organized around the Next.js App 
 - **App Router Pattern**: File-based routing with Next.js
 - **Server Components**: Optimized rendering with reduced client JavaScript
 - **Page Structure**: Organized into main sections like authentication `(auth)` and chat `(chat)`
+
+### API Structure
+- **App Router API**: Modern API routes implemented in the `app/api` directory
+- **MCP Integration**: Model Context Protocol server for enhanced LLM capabilities
+- **Redis Integration**: State management for MCP and other services
+- **Simplified Structure**: Reduced redundancy and improved organization
+
+For more details on the API structure, see [API Structure Documentation](docs/architecture/api-structure.md).
 
 ### AI Integration Layer
 - **AI SDK Integration**: Centralized access to AI models
@@ -122,7 +130,14 @@ The application follows a layered architecture organized around the Next.js App 
 
 ## Model Providers
 
-This template ships with [OpenAI](https://openai.com) as the default chat model provider. With the [AI SDK](https://sdk.vercel.ai/docs), you can also use other providers like [xAI](https://x.ai), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+This application uses OpenAI as the default chat model provider. With the Vercel AI SDK, it supports multiple providers including Groq and xAI with minimal configuration changes.
+
+### Current Configuration
+The default provider setup includes:
+- **Chat Model**: OpenAI's GPT-4o
+- **Reasoning Model**: OpenAI's o3-mini with reasoning middleware
+- **Title Model**: OpenAI's GPT-3.5-turbo
+- **Image Generation**: DALL-E 3
 
 ### MCP SDK Integration
 The application uses the Model Context Protocol (MCP) TypeScript SDK for enhanced context management and standardized interactions with language models. Key features include:
@@ -189,6 +204,37 @@ pnpm dev
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
 
+### Using the Local Deployment Script
+
+For a more comprehensive local deployment that includes Redis, PostgreSQL, Next.js and Storybook all running together, use the included deployment script:
+
+```bash
+# Standard development mode
+pnpm dev:complete
+
+# Make sure port 3000 is available
+pnpm predev
+```
+
+The service manager script supports checking and starting required services:
+
+```bash
+# Check services
+pnpm services:check
+
+# Start all services
+pnpm services:start
+```
+
+Available options:
+- `--dev`: Run in development mode
+- `--skip-lint`: Skip linting checks
+- `--skip-type-check`: Skip TypeScript type checking
+- `--skip-redis`: Skip Redis setup
+- `--skip-postgres`: Skip PostgreSQL setup
+- `--skip-build`: Skip Next.js build
+- `--skip-storybook`: Skip Storybook startup
+
 ## Deployment
 
 ### Pre-deployment Checks
@@ -213,7 +259,7 @@ rm -rf .next && pnpm build
 ### Build Optimization
 The application is optimized for production with:
 - Server-side rendering for improved performance
-- Optimized bundle sizes (First Load JS shared: 108 kB)
+- Optimized bundle sizes
 - Efficient chunk splitting and code splitting
 - Static page generation where possible
 - Middleware optimization for auth and routing
@@ -231,9 +277,8 @@ Configuration in `lib/ai/models.ts` allows for selecting from multiple providers
 ### Tools
 The application includes various AI function calling tools:
 - Document creation and updates
-- Weather information
-- Suggestions and recommendations
-- Custom tool extensibility
+- Custom tool extensibility via MCP
+- Integration with various external services
 
 ### MCP Integration
 
@@ -246,13 +291,13 @@ The Model Context Protocol integration provides enhanced context management:
 
 2. **Implementation**:
    ```typescript
-   import { createMCPClient } from '@/lib/mcp/client';
+   import { createMcpContextProvider } from '@/lib/mcp/client';
    
    export const myProvider = customProvider({
      languageModels: {
        // existing models
      },
-     contextProvider: createMCPClient({
+     contextProvider: createMcpContextProvider({
        serverUrl: process.env.MCP_SERVER_URL,
      }),
    });
@@ -287,4 +332,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-*It's game time baby*
+*It's mcp game time baby*

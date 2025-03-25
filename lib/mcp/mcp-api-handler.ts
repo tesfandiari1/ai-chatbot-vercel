@@ -10,21 +10,13 @@ import { Redis } from '@upstash/redis';
 import { Socket } from 'node:net';
 import { Readable } from 'node:stream';
 import crypto from 'node:crypto';
+import {
+  createRedisClient,
+  validateRedisConnection,
+} from '../redis/redis-client';
 
 // Default max duration for the function (in seconds)
 const DEFAULT_MAX_DURATION = 60;
-
-// Add Redis connection validation function
-async function validateRedisConnection(redis: Redis): Promise<boolean> {
-  try {
-    const pingResult = await redis.ping();
-    console.log('Redis ping result:', pingResult);
-    return true;
-  } catch (error) {
-    console.error('Redis connection validation failed:', error);
-    return false;
-  }
-}
 
 interface SerializedRequest {
   requestId: string;
@@ -57,94 +49,45 @@ export async function initializeMcpApiHandler(
     10,
   );
 
-  // Get Redis URL from environment variables
-  const redisUrl = process.env.KV_REST_API_URL;
-  const redisToken = process.env.KV_REST_API_TOKEN;
+  // Initialize Redis client using our factory
+  console.log('Initializing Redis for MCP state management...');
+  let redis: ReturnType<typeof createRedisClient>;
+  let redisPublisher: ReturnType<typeof createRedisClient>;
 
-  if (!redisUrl || !redisToken) {
-    console.error('Missing Redis credentials:', {
-      hasUrl: !!redisUrl,
-      hasToken: !!redisToken,
+  try {
+    // Create main Redis client with fallback for development
+    redis = createRedisClient({
+      allowFallback: process.env.NODE_ENV === 'development',
+      retries: 3,
     });
-    throw new Error(
-      'Redis credentials are not configured. Please set KV_REST_API_URL and KV_REST_API_TOKEN environment variables.',
-    );
-  }
 
-  // Initialize Redis clients with fallback for development
-  let redis:
-    | Redis
-    | {
-        get: (key: string) => Promise<any>;
-        set: (key: string, value: string) => Promise<void>;
-        del: (key: string) => Promise<void>;
-        hset: (key: string, value: Record<string, any>) => Promise<void>;
-      };
-  let redisPublisher: Redis | typeof redis;
+    // Create publisher client (for pub/sub if needed)
+    redisPublisher = createRedisClient({
+      allowFallback: process.env.NODE_ENV === 'development',
+      retries: 3,
+    });
 
-  if (process.env.NODE_ENV === 'development') {
-    // In development, use a simple in-memory store if Redis is not configured
-    console.warn(
-      'Using in-memory store for development. Redis connection will not persist.',
-    );
-    const inMemoryStore = new Map();
-    redis = {
-      get: async (key: string) => inMemoryStore.get(key),
-      set: async (key: string, value: string) => {
-        inMemoryStore.set(key, value);
-        return;
-      },
-      del: async (key: string) => {
-        inMemoryStore.delete(key);
-        return;
-      },
-      hset: async (key: string, value: Record<string, any>) => {
-        inMemoryStore.set(key, value);
-        return;
-      },
-    };
-    redisPublisher = redis;
-  } else {
-    try {
-      console.log('Initializing Redis connection...');
-      // Ensure the URL is properly formatted for Upstash Redis
-      const formattedUrl = redisUrl.startsWith('https://')
-        ? redisUrl
-        : `https://${redisUrl}`;
-
-      console.log('Connecting to Redis at:', formattedUrl);
-
-      redis = new Redis({
-        url: formattedUrl,
-        token: redisToken,
-        retry: {
-          retries: 3,
-          backoff: (retryCount: number) =>
-            Math.min(1000 * Math.pow(2, retryCount), 3000),
-        },
-      });
-
-      // Validate connection before proceeding
+    // For Redis client (not in-memory fallback), validate connection
+    if (redis instanceof Redis) {
       const isValid = await validateRedisConnection(redis);
-      if (!isValid) {
+      if (!isValid && process.env.NODE_ENV !== 'development') {
         throw new Error('Redis connection validation failed');
       }
+    }
 
-      redisPublisher = new Redis({
-        url: formattedUrl,
-        token: redisToken,
-        retry: {
-          retries: 3,
-          backoff: (retryCount: number) =>
-            Math.min(1000 * Math.pow(2, retryCount), 3000),
-        },
-      });
-
-      console.log('Redis connection established successfully');
-    } catch (error) {
+    console.log('Redis initialization complete');
+  } catch (error: unknown) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        'Redis initialization failed in development mode, using in-memory store:',
+        error instanceof Error ? error.message : String(error),
+      );
+      // Will use in-memory fallback
+    } else {
+      // In production, fail if Redis is not available
       console.error('Redis initialization failed:', error);
       throw new Error(
-        `Failed to initialize Redis connection: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to initialize Redis for MCP: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

@@ -1,0 +1,418 @@
+[2025-03-25T04:47:29.681Z] Logging to logs/deploy-1742878049678.log
+[2025-03-25T04:47:29.682Z] Checking environment variables...
+[2025-03-25T04:47:29.682Z] .env.local file found
+[2025-03-25T04:47:29.684Z] All required environment variables are set
+[2025-03-25T04:47:29.684Z] Running code quality checks...
+[2025-03-25T04:47:29.684Z] Running lint checks...
+[2025-03-25T04:47:29.686Z] Checking TypeScript types...
+
+> ai-chatbot@0.1.0 lint:fix /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel
+> next lint --fix && biome lint --write --unsafe
+
+✔ No ESLint warnings or errors
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:7:30 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Object' as a type.
+  
+    5 │ type TEntry = typeof import('../../../../app/(chat)/page.js')
+    6 │ 
+  > 7 │ type SegmentParams<T extends Object = any> = T extends Record<string, any>
+      │                              ^^^^^^
+    8 │   ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
+    9 │   : T
+  
+  i Prefer explicitly define the object shape. This type means "any non-nullable value", which is slightly better than 'unknown', but it's still a broad type.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:13:12 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    11 │ // Check that the entry is a valid entry
+    12 │ checkFields<Diff<{
+  > 13 │   default: Function
+       │            ^^^^^^^^
+    14 │   config?: {}
+    15 │   generateStaticParams?: Function
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:14:12 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use '{}' as a type.
+  
+    12 │ checkFields<Diff<{
+    13 │   default: Function
+  > 14 │   config?: {}
+       │            ^^
+    15 │   generateStaticParams?: Function
+    16 │   revalidate?: RevalidateRange<TEntry> | false
+  
+  i Prefer explicitly define the object shape. '{}' means "any non-nullable value".
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:15:26 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    13 │   default: Function
+    14 │   config?: {}
+  > 15 │   generateStaticParams?: Function
+       │                          ^^^^^^^^
+    16 │   revalidate?: RevalidateRange<TEntry> | false
+    17 │   dynamic?: 'auto' | 'force-dynamic' | 'error' | 'force-static'
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:25:22 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    24 │   metadata?: any
+  > 25 │   generateMetadata?: Function
+       │                      ^^^^^^^^
+    26 │   viewport?: any
+    27 │   generateViewport?: Function
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:27:22 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    25 │   generateMetadata?: Function
+    26 │   viewport?: any
+  > 27 │   generateViewport?: Function
+       │                      ^^^^^^^^
+    28 │   experimental_ppr?: boolean
+    29 │   
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:70:84 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use '{}' as a type.
+  
+    68 │ // If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+    69 │ type OmitWithTag<T, K extends keyof any, _M> = Omit<T, K>
+  > 70 │ type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
+       │                                                                                    ^^
+    71 │ 
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+  
+  i Prefer explicitly define the object shape. '{}' means "any non-nullable value".
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:72:25 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    70 │ type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
+    71 │ 
+  > 72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+       │                         ^^^^^^^^
+    73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+    74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:73:26 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+  > 73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+       │                          ^^^^^^^^
+    74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+    75 │ 
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/page.ts:74:84 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+    73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+  > 74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+       │                                                                                    ^^^^^^^^
+    75 │ 
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:7:30 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Object' as a type.
+  
+    5 │ type TEntry = typeof import('../../../../../../app/(chat)/chat/[id]/page.js')
+    6 │ 
+  > 7 │ type SegmentParams<T extends Object = any> = T extends Record<string, any>
+      │                              ^^^^^^
+    8 │   ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
+    9 │   : T
+  
+  i Prefer explicitly define the object shape. This type means "any non-nullable value", which is slightly better than 'unknown', but it's still a broad type.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:13:12 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    11 │ // Check that the entry is a valid entry
+    12 │ checkFields<Diff<{
+  > 13 │   default: Function
+       │            ^^^^^^^^
+    14 │   config?: {}
+    15 │   generateStaticParams?: Function
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:14:12 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use '{}' as a type.
+  
+    12 │ checkFields<Diff<{
+    13 │   default: Function
+  > 14 │   config?: {}
+       │            ^^
+    15 │   generateStaticParams?: Function
+    16 │   revalidate?: RevalidateRange<TEntry> | false
+  
+  i Prefer explicitly define the object shape. '{}' means "any non-nullable value".
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:15:26 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    13 │   default: Function
+    14 │   config?: {}
+  > 15 │   generateStaticParams?: Function
+       │                          ^^^^^^^^
+    16 │   revalidate?: RevalidateRange<TEntry> | false
+    17 │   dynamic?: 'auto' | 'force-dynamic' | 'error' | 'force-static'
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:25:22 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    24 │   metadata?: any
+  > 25 │   generateMetadata?: Function
+       │                      ^^^^^^^^
+    26 │   viewport?: any
+    27 │   generateViewport?: Function
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:27:22 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    25 │   generateMetadata?: Function
+    26 │   viewport?: any
+  > 27 │   generateViewport?: Function
+       │                      ^^^^^^^^
+    28 │   experimental_ppr?: boolean
+    29 │   
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:70:84 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use '{}' as a type.
+  
+    68 │ // If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+    69 │ type OmitWithTag<T, K extends keyof any, _M> = Omit<T, K>
+  > 70 │ type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
+       │                                                                                    ^^
+    71 │ 
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+  
+  i Prefer explicitly define the object shape. '{}' means "any non-nullable value".
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:72:25 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    70 │ type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
+    71 │ 
+  > 72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+       │                         ^^^^^^^^
+    73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+    74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:73:26 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+  > 73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+       │                          ^^^^^^^^
+    74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+    75 │ 
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/.next 2/types/app/(chat)/chat/[id]/page.ts:74:84 lint/complexity/noBannedTypes ━━━━━━━━━━
+
+  × Don't use 'Function' as a type.
+  
+    72 │ type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
+    73 │ type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
+  > 74 │ type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
+       │                                                                                    ^^^^^^^^
+    75 │ 
+  
+  i Prefer explicitly define the function shape. This type accepts any function-like value, which can be a common source of bugs.
+  
+
+The number of diagnostics exceeds the number allowed by Biome.
+Diagnostics not shown: 128.
+Checked 202 files in 59ms. Fixed 1 file.
+Found 148 errors.
+lint ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+
+[2025-03-25T04:47:31.865Z] TypeScript checks passed successfully
+ ELIFECYCLE  Command failed with exit code 1.
+[33m[2025-03-25T04:47:31.942Z] WARNING: Lint checks failed with code 1, but continuing in development mode[39m
+[2025-03-25T04:47:31.942Z] Setting up databases...
+[2025-03-25T04:47:31.942Z] Starting PostgreSQL in Docker...
+[2025-03-25T04:47:31.944Z] Starting Redis in Docker...
+[2025-03-25T04:47:31.992Z] Redis container is already running
+[2025-03-25T04:47:31.992Z] Testing Redis connectivity...
+Testing Redis connection...
+Redis URL found, attempting connection...
+Setting test value in Redis...
+[2025-03-25T04:47:32.211Z] Docker is running.
+[2025-03-25T04:47:32.253Z] PostgreSQL container is already running.
+[2025-03-25T04:47:32.253Z] Testing PostgreSQL connection...
+[2025-03-25T04:47:35.333Z] PostgreSQL is ready and accepting connections!
+[2025-03-25T04:47:35.333Z] Running database migrations...
+[2025-03-25T04:47:35.333Z] ✅ PostgreSQL is ready for use!
+[2025-03-25T04:47:35.333Z] Connection string: postgres://postgres:postgres@localhost:5432/uniwise
+[2025-03-25T04:47:35.333Z] 
+Press Ctrl+C to stop this script (PostgreSQL will continue running).
+[2025-03-25T04:47:35.408Z] Running database migrations...
+⏳ Running migrations...
+❌ Migration failed
+PostgresError: role "postgres" does not exist
+    at ErrorResponse (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/postgres@3.4.5/node_modules/postgres/cjs/src/connection.js:788:26)
+    at handle (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/postgres@3.4.5/node_modules/postgres/cjs/src/connection.js:474:6)
+    at Socket.data (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/postgres@3.4.5/node_modules/postgres/cjs/src/connection.js:315:9)
+    at Socket.emit (node:events:520:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  severity_local: 'FATAL',
+  severity: 'FATAL',
+  code: '28000',
+  file: 'miscinit.c',
+  line: '755',
+  routine: 'InitializeSessionUserId'
+}
+[2025-03-25T04:47:36.606Z] ERROR: ❌ Database migrations failed with code 1
+[2025-03-25T04:47:36.606Z] ERROR: An error occurred: Database migrations failed with code 1
+[33m[2025-03-25T04:47:36.607Z] WARNING: Database migrations failed with code 1, but continuing in development mode[39m
+❌ Redis connection test failed with error: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13178:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async HttpClient.request (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/@upstash+redis@1.34.6/node_modules/@upstash/redis/nodejs.js:174:15)
+    at async Pipeline.exec (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/@upstash+redis@1.34.6/node_modules/@upstash/redis/nodejs.js:2522:17)
+    at async AutoPipelineExecutor.withAutoPipeline (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/node_modules/.pnpm/@upstash+redis@1.34.6/node_modules/@upstash/redis/nodejs.js:373:21)
+    at async testRedisConnection (/Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/test-redis.js:40:5) {
+  [cause]: ConnectTimeoutError: Connect Timeout Error
+      at onConnectTimeout (node:internal/deps/undici/undici:2331:28)
+      at node:internal/deps/undici/undici:2283:50
+      at Immediate._onImmediate (node:internal/deps/undici/undici:2315:13)
+      at process.processImmediate (node:internal/timers:483:21) {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+[31m[2025-03-25T04:48:36.402Z] ERROR: Redis connection test failed with code 1[39m
+[33m[2025-03-25T04:48:36.402Z] WARNING: Redis connection test failed: Redis connection test failed with code 1[39m
+[33m[2025-03-25T04:48:36.402Z] WARNING: Continuing without verified Redis in development mode[39m
+[2025-03-25T04:48:36.402Z] Skipping Next.js build (--skip-build flag provided or in dev mode)
+[2025-03-25T04:48:36.402Z] Starting applications in development mode...
+[33m[2025-03-25T04:48:36.403Z] WARNING: Port 3000 is already in use for Next.js[39m
+[2025-03-25T04:48:36.403Z] Using alternative port 3001 for Next.js
+[2025-03-25T04:48:36.403Z] Starting Next.js in development mode on port 3001...
+[2025-03-25T04:48:36.405Z] Clearing Storybook cache...
+[2025-03-25T04:48:36.405Z] Cleared Storybook cache: ./.storybook/cache
+[2025-03-25T04:48:36.416Z] Cleared Storybook cache: ./node_modules/.cache/storybook
+[33m[2025-03-25T04:48:36.416Z] WARNING: Port 6006 is already in use for Storybook[39m
+[2025-03-25T04:48:36.416Z] Using alternative port 6007 for Storybook
+[2025-03-25T04:48:36.416Z] Starting Storybook on port 6007...
+[33m[2025-03-25T04:48:36.418Z] WARNING: Port 8000 is already in use for MCP server[39m
+[2025-03-25T04:48:36.418Z] Using alternative port 8001 for MCP server
+[2025-03-25T04:48:36.418Z] Starting MCP server on port 8001...
+[2025-03-25T04:48:36.418Z] MCP_SERVER_URL set to http://localhost:8001/api/mcp/server
+[MCP Server] [2025-03-25T04:48:36.559Z] Environment variables loaded from .env.local
+[MCP Server] [2025-03-25T04:48:36.560Z] Starting MCP server on port 8001...
+[Next.js] 
+> ai-chatbot@0.1.0 dev /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel
+> next dev --turbo "--" "-p" "3001"
+
+[Storybook] 
+> ai-chatbot@0.1.0 storybook /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel
+> storybook dev -p 6006 "--" "-p" "6007" "--no-manager-cache" "--no-version-updates" "--quiet"
+
+[Next.js] Invalid project directory provided, no such directory: /Users/tristinesfandiari/Desktop/code/vercel-chatbot/ai-chatbot-vercel/-p
+[Next.js]  ELIFECYCLE  Command failed with exit code 1.
+[31m[2025-03-25T04:48:37.028Z] ERROR: Next.js dev server exited with code 1[39m
+[Storybook] @storybook/core v8.6.9
+
+[MCP Server] [2025-03-25T04:48:37.659Z] Next.js app prepared successfully
+[MCP Server] [2025-03-25T04:48:37.660Z] MCP server is now running at http://localhost:8001
+[MCP Server] [2025-03-25T04:48:37.660Z] MCP endpoint available at http://localhost:8001/api/mcp/server
+[Storybook] [?25l[Storybook] [2K[1G[36m?[39m [1mPort 6006 is not available. Would you like to run Storybook on port 6007 instead?[22m [90m›[39m [90m(Y/n)[39m[2025-03-25T04:48:38.419Z] All services started successfully!
+[2025-03-25T04:48:38.419Z] 
+    🚀 Services running:
+      - Next.js: http://localhost:3001
+      - Storybook: http://localhost:6007
+      - PostgreSQL: localhost:5432
+      - Redis: localhost:6379
+      - MCP Server: http://localhost:8001/api/mcp/server
+    
+[1G[0Juniwise> [10G[MCP Server] [2025-03-25T04:49:04.194Z] MCP request received: GET /api/mcp/server
+[MCP Server]  ○ Compiling /middleware ...
+[MCP Server]  ✓ Compiled /middleware in 527ms (292 modules)
+[MCP Server]  ○ Compiling /_not-found ...
+[MCP Server]  ✓ Compiled /_not-found in 2.6s (752 modules)
+[MCP Server]  GET /api/mcp/server 404 in 2791ms
+[MCP Server]  ✓ Compiled /api/auth/[...nextauth] in 190ms (422 modules)
+[MCP Server]  ✓ Compiled in 211ms (329 modules)
+[MCP Server] [2025-03-25T04:49:08.965Z] MCP request received: GET /api/mcp/server?_rsc=1xnty
+[MCP Server]  GET /api/mcp/server 404 in 23ms
+[MCP Server] [2025-03-25T04:49:09.000Z] MCP request received: GET /api/mcp/server
+[MCP Server]  GET /favicon.ico 200 in 991ms
+[MCP Server]  GET /api/auth/session 200 in 987ms
+[MCP Server]  GET /api/mcp/server 404 in 42ms
+[MCP Server]  GET /api/auth/session 200 in 38ms
+[MCP Server]  GET /api/auth/session 200 in 7ms
+[MCP Server]  GET /favicon.ico 200 in 208ms
+[MCP Server]  ✓ Compiled in 78ms (292 modules)
+[MCP Server]  ✓ Compiled in 298ms (604 modules)
+[MCP Server]  ✓ Compiled in 39ms (292 modules)
+[MCP Server]  ✓ Compiled in 36ms (292 modules)
