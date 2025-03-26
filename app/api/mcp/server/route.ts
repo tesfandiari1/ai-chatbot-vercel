@@ -4,7 +4,6 @@ import {
   McpServer,
   ResourceTemplate,
 } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Redis } from '@upstash/redis';
 
 export const runtime = 'nodejs';
 export const preferredRegion = 'iad1'; // Specify deployment region if needed

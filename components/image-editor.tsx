@@ -16,6 +16,8 @@ export function ImageEditor({
   status,
   isInline,
 }: ImageEditorProps) {
+  const isErrorMessage = content && !content.match(/^[A-Za-z0-9+/=]+$/);
+
   return (
     <div
       className={cn('flex flex-row items-center justify-center w-full', {
@@ -32,7 +34,9 @@ export function ImageEditor({
           )}
           <div>Generating Image...</div>
         </div>
-      ) : (
+      ) : isErrorMessage ? (
+        <div className="text-red-500 p-4 max-w-[500px]">{content}</div>
+      ) : content ? (
         <picture>
           <img
             className={cn('w-full h-fit max-w-[800px]', {
@@ -42,6 +46,8 @@ export function ImageEditor({
             alt={title}
           />
         </picture>
+      ) : (
+        <div>No image content available</div>
       )}
     </div>
   );

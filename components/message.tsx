@@ -1,10 +1,9 @@
 'use client';
 
 import type { UIMessage } from 'ai';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState, useEffect } from 'react';
+import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { PencilEditIcon, SparklesIcon } from './icons';
@@ -19,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 const PurePreviewMessage = ({
   chatId,
@@ -244,23 +244,13 @@ export const PreviewMessage = memo(
 
 export const ThinkingMessage = () => {
   const role = 'assistant';
-  const dots = ['', '.', '..', '...'];
-  const [dotIndex, setDotIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDotIndex((prevIndex) => (prevIndex + 1) % dots.length);
-    }, 500); // 500ms animation speed for smooth transition
-
-    return () => clearInterval(interval);
-  }, [dots.length]);
 
   return (
     <motion.div
       data-testid="message-assistant-loading"
-      className="w-full mx-auto max-w-3xl px-4 group/message"
+      className="w-full mx-auto max-w-3xl px-4 group/message "
       initial={{ y: 5, opacity: 0 }}
-      animate={{ y: 0, opacity: 1, transition: { delay: 0.3 } }}
+      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
       data-role={role}
     >
       <div
@@ -276,20 +266,9 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex flex-col gap-2 w-full">
-          <motion.div
-            className="flex flex-col gap-4 text-muted-foreground font-medium"
-            animate={{
-              opacity: [0.6, 1, 0.6],
-              transition: {
-                repeat: Number.POSITIVE_INFINITY,
-                duration: 1.8,
-                ease: 'easeInOut',
-                times: [0, 0.5, 1],
-              },
-            }}
-          >
-            Reasoning{dots[dotIndex]}
-          </motion.div>
+          <div className="flex flex-col gap-4 text-muted-foreground">
+            Hmm...
+          </div>
         </div>
       </div>
     </motion.div>

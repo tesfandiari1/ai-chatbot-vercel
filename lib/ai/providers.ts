@@ -20,6 +20,9 @@ export const myProvider = isTestEnvironment
         'title-model': titleModel,
         'artifact-model': artifactModel,
       },
+      imageModels: {
+        'small-model': openai.image('dall-e-3'),
+      },
     })
   : customProvider({
       languageModels: {

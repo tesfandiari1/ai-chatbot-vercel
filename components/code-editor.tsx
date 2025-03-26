@@ -20,24 +20,18 @@ type EditorProps = {
 function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
-  const initializeOnceRef = useRef(false);
 
   useEffect(() => {
-    if (initializeOnceRef.current) return;
-
     if (containerRef.current && !editorRef.current) {
-      const state = EditorState.create({
+      const startState = EditorState.create({
         doc: content,
         extensions: [basicSetup, python(), oneDark],
       });
 
-      const view = new EditorView({
-        state,
+      editorRef.current = new EditorView({
+        state: startState,
         parent: containerRef.current,
       });
-
-      editorRef.current = view;
-      initializeOnceRef.current = true;
     }
 
     return () => {
@@ -46,7 +40,9 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
         editorRef.current = null;
       }
     };
-  }, [content]);
+    // NOTE: we only want to run this effect once
+    // eslint-disable-next-line
+  }, []);
 
   useEffect(() => {
     if (editorRef.current) {

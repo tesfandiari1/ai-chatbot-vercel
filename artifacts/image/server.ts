@@ -7,36 +7,54 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
   onCreateDocument: async ({ title, dataStream }) => {
     let draftContent = '';
 
-    const { image } = await experimental_generateImage({
-      model: myProvider.imageModel('small-model'),
-      prompt: title,
-      n: 1,
-    });
+    try {
+      const { image } = await experimental_generateImage({
+        model: myProvider.imageModel('small-model'),
+        prompt: title,
+        n: 1,
+      });
 
-    draftContent = image.base64;
+      draftContent = image.base64;
 
-    dataStream.writeData({
-      type: 'image-delta',
-      content: image.base64,
-    });
+      dataStream.writeData({
+        type: 'image-delta',
+        content: image.base64,
+      });
+    } catch (error) {
+      console.error('Error generating image:', error);
+      dataStream.writeData({
+        type: 'image-delta',
+        content:
+          'Error generating image. Please check your API credentials or try again later.',
+      });
+    }
 
     return draftContent;
   },
   onUpdateDocument: async ({ description, dataStream }) => {
     let draftContent = '';
 
-    const { image } = await experimental_generateImage({
-      model: myProvider.imageModel('small-model'),
-      prompt: description,
-      n: 1,
-    });
+    try {
+      const { image } = await experimental_generateImage({
+        model: myProvider.imageModel('small-model'),
+        prompt: description,
+        n: 1,
+      });
 
-    draftContent = image.base64;
+      draftContent = image.base64;
 
-    dataStream.writeData({
-      type: 'image-delta',
-      content: image.base64,
-    });
+      dataStream.writeData({
+        type: 'image-delta',
+        content: image.base64,
+      });
+    } catch (error) {
+      console.error('Error updating image:', error);
+      dataStream.writeData({
+        type: 'image-delta',
+        content:
+          'Error updating image. Please check your API credentials or try again later.',
+      });
+    }
 
     return draftContent;
   },
