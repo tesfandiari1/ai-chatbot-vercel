@@ -1,6 +1,7 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth, { type User, type Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 
 import { getUser } from '@/lib/db/queries';
 
@@ -27,6 +28,16 @@ export const {
         const passwordsMatch = await compare(password, users[0].password!);
         if (!passwordsMatch) return null;
         return users[0] as any;
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
+      authorization: {
+        params: {
+          scope:
+            'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events openid email profile',
+        },
       },
     }),
   ],

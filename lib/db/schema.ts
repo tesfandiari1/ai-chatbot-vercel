@@ -109,7 +109,9 @@ export const document = pgTable(
     createdAt: timestamp('createdAt').notNull(),
     title: text('title').notNull(),
     content: text('content'),
-    kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet'] })
+    kind: varchar('text', {
+      enum: ['text', 'code', 'image', 'sheet', 'calendar'],
+    })
       .notNull()
       .default('text'),
     userId: uuid('userId')
@@ -150,3 +152,19 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+export const oauthToken = pgTable('OAuthToken', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  accessToken: text('accessToken').notNull(),
+  refreshToken: text('refreshToken'),
+  expiresAt: timestamp('expiresAt'),
+  composioConnectionId: text('composioConnectionId'),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
+});
+
+export type OAuthToken = InferSelectModel<typeof oauthToken>;

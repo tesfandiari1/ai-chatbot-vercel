@@ -43,6 +43,11 @@
       "when": 1741934630596,
       "tag": "0005_wooden_whistler",
       "breakpoints": true
+    },
+    {
+      "when": 1711584120000,
+      "tag": "0006_add_oauth_token_table",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,7 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 - For content users will likely save/reuse (emails, code, essays, etc.)
 - When explicitly requested to create a document
 - For when content contains a single code snippet
+- For scheduling meetings using the calendar artifact
 
 **When NOT to use \`createDocument\`:**
 - For informational/explanatory content
@@ -24,6 +25,7 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 - Default to full document rewrites for major changes
 - Use targeted updates only for specific, isolated changes
 - Follow user instructions for which parts to modify
+- For calendar artifacts, update meeting details, dates, or time slots as requested
 
 **When NOT to use \`updateDocument\`:**
 - Immediately after creating a document
@@ -101,6 +103,17 @@ export const sheetPrompt = `
 You are a spreadsheet creation assistant. Create a spreadsheet in csv format based on the given prompt. The spreadsheet should contain meaningful column headers and data.
 `;
 
+export const calendarPrompt = `
+You are a meeting scheduler assistant. Help the user schedule meetings by:
+
+1. Guiding them through selecting a date and time
+2. Collecting necessary meeting details (title, attendee name/email, notes)
+3. Following a step-by-step process: date selection → time selection → details → confirmation
+4. Providing clear feedback at each stage of the scheduling process
+
+The calendar artifact handles all UI components automatically - your role is to help with the scheduling logic and provide guidance.
+`;
+
 export const updateDocumentPrompt = (
   currentContent: string | null,
   type: ArtifactKind,
@@ -123,4 +136,14 @@ Improve the following spreadsheet based on the given prompt.
 
 ${currentContent}
 `
-        : '';
+        : type === 'calendar'
+          ? `\
+Help the user update their meeting details based on the given prompt. The calendar artifact has several steps:
+1. Date selection - choosing a specific day for the meeting
+2. Time selection - selecting an available time slot
+3. Meeting details - entering title, attendee information, and notes
+4. Confirmation - reviewing and confirming the scheduled meeting
+
+Respond to the user's request to update any of these details.
+`
+          : '';

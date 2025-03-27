@@ -4,6 +4,7 @@ import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { sql } from 'drizzle-orm';
 
 import {
   user,
@@ -15,6 +16,7 @@ import {
   message,
   vote,
   type DBMessage,
+  oauthToken,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 
@@ -348,4 +350,65 @@ export async function updateChatVisiblityById({
     console.error('Failed to update chat visibility in database');
     throw error;
   }
+}
+
+// OAuth Token queries
+export async function getOAuthToken(userId: string, provider: string) {
+  const tokens = await db
+    .select()
+    .from(oauthToken)
+    .where(
+      sql`${oauthToken.userId} = ${userId} AND ${oauthToken.provider} = ${provider}`,
+    );
+
+  return tokens[0] || null;
+}
+
+export async function saveOAuthToken(token: {
+  userId: string;
+  provider: string;
+  accessToken?: string;
+  refreshToken?: string | null;
+  expiresAt?: Date | null;
+  composioConnectionId?: string;
+}) {
+  const { userId, provider } = token;
+
+  // Check if a token already exists for this user and provider
+  const existingToken = await getOAuthToken(userId, provider);
+
+  if (existingToken) {
+    // Update existing token
+    return db
+      .update(oauthToken)
+      .set({
+        accessToken: token.accessToken || existingToken.accessToken,
+        refreshToken: token.refreshToken || existingToken.refreshToken,
+        expiresAt: token.expiresAt || existingToken.expiresAt,
+        composioConnectionId:
+          token.composioConnectionId || existingToken.composioConnectionId,
+        updatedAt: new Date(),
+      })
+      .where(sql`${oauthToken.id} = ${existingToken.id}`);
+  } else {
+    // Insert new token
+    return db.insert(oauthToken).values({
+      userId: token.userId,
+      provider: token.provider,
+      accessToken: token.accessToken || '',
+      refreshToken: token.refreshToken || null,
+      expiresAt: token.expiresAt || null,
+      composioConnectionId: token.composioConnectionId || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+}
+
+export async function deleteOAuthToken(userId: string, provider: string) {
+  return db
+    .delete(oauthToken)
+    .where(
+      sql`${oauthToken.userId} = ${userId} AND ${oauthToken.provider} = ${provider}`,
+    );
 }
