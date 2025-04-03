@@ -1,7 +1,5 @@
-// Mock implementation of the Composio SDK
-// We'll use this until we can properly install and configure the real SDK
-
-import { OpenAIToolSet } from 'composio-core';
+// Import the Composio SDK properly
+import { OpenAIToolSet, Composio } from 'composio-core';
 
 // Define AuthResult interface to match what would be returned by Composio
 export interface AuthResult {
@@ -12,10 +10,20 @@ export interface AuthResult {
   error?: string;
 }
 
+// Real Composio API key and connection ID
+const COMPOSIO_API_KEY =
+  process.env.COMPOSIO_API_KEY || '797yjs86ki2n70fc8m3ou';
+const COMPOSIO_CONNECTION_ID =
+  process.env.COMPOSIO_CONNECTION_ID || '45c1d6cd-c8ed-409b-afed-d9c03c0fff75';
+
+// Initialize the Composio client
+export const composioClient = new Composio({
+  apiKey: COMPOSIO_API_KEY,
+});
+
 // Initialize the Composio toolset with the provided API key
 export const composioToolset = new OpenAIToolSet({
-  apiKey:
-    process.env.COMPOSIO_API_KEY || 'c4feb79e-dd2a-4aec-9ff4-b5c352e2676d',
+  apiKey: COMPOSIO_API_KEY,
 });
 
 // Function to initialize calendar-specific tools
@@ -45,6 +53,23 @@ export const handleToolCalls = async (response: any) => {
     console.error('Error handling tool calls:', error);
     throw error;
   }
+};
+
+// Get the connected account for Google Calendar
+export const getConnectedAccount = async () => {
+  try {
+    return await composioClient.connectedAccounts.get({
+      connectedAccountId: COMPOSIO_CONNECTION_ID,
+    });
+  } catch (error) {
+    console.error('Error getting connected account:', error);
+    throw error;
+  }
+};
+
+// Function to check if Composio is configured properly
+export const isComposioConfigured = () => {
+  return !!COMPOSIO_API_KEY && !!COMPOSIO_CONNECTION_ID;
 };
 
 // Get OAuth URL for Google Calendar
@@ -101,57 +126,6 @@ export const handleGoogleCalendarCallback = async (
     };
   }
 };
-
-// Create a fallback for local development or testing if needed
-if (!process.env.COMPOSIO_API_KEY && !composioToolset.apiKey) {
-  console.warn(
-    'No Composio API key found. Using mock implementation as fallback.',
-  );
-
-  // Mock implementation that mimics the real SDK for development
-  (composioToolset as any).getTools = async ({
-    actions,
-  }: { actions: string[] }) => {
-    console.log('MOCK: getTools called with actions:', actions);
-    return actions.map((action) => ({
-      type: 'function',
-      function: {
-        name: action,
-        description: `Mock implementation of ${action}`,
-        parameters: {},
-      },
-    }));
-  };
-
-  (composioToolset as any).handleToolCall = async (response: any) => {
-    console.log('MOCK: handleToolCall called with response:', response);
-    return {
-      successful: true,
-      data: {
-        id: `mock_event_${Date.now()}`,
-        htmlLink: 'https://calendar.google.com/calendar/event?eid=mock',
-      },
-    };
-  };
-
-  (composioToolset as any).makeToolCalls = async (options: any) => {
-    console.log('MOCK: makeToolCalls called with options:', options);
-    return {
-      id: `mock_call_${Date.now()}`,
-      object: 'chat.completion',
-      tool_calls: [
-        {
-          id: `call_${Date.now()}`,
-          type: 'function',
-          function: {
-            name: options.tool_choice.function.name,
-            arguments: '{}',
-          },
-        },
-      ],
-    };
-  };
-}
 
 // In a real implementation with the actual SDK:
 /*

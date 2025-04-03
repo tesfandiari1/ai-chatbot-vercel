@@ -5,6 +5,11 @@ import { saveOAuthToken } from '@/lib/db/queries';
 import { auth } from '@/app/(auth)/auth';
 import { waitForCalendarConnection } from '@/lib/composio/calendar';
 
+// Helper function to validate user ID
+function isValidUserId(id: string | undefined): id is string {
+  return typeof id === 'string' && id.length > 0;
+}
+
 /**
  * GET handler for Google Calendar OAuth callback
  * This endpoint handles the OAuth redirect from Google
@@ -31,6 +36,11 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     if (!session?.user || session.user.id !== userId) {
       return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Validate user ID
+    if (!isValidUserId(session.user.id)) {
+      throw new Error('Invalid user ID');
     }
 
     // Exchange code for tokens - this is now primarily for backwards compatibility

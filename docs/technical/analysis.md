@@ -30,6 +30,11 @@ The architecture leverages modern web development patterns with a focus on serve
 │   └── layout.tsx             # Root layout component
 ├── components/                # React components
 │   ├── ui/                    # Base UI components (shadcn/ui)
+│   ├── calendar/              # Calendar UI components
+│   │   ├── DatePicker.tsx     # Date selection component
+│   │   ├── TimePicker.tsx     # Time slot selection component
+│   │   ├── AppointmentForm.tsx # Appointment form component
+│   │   └── Confirmation.tsx   # Booking confirmation component
 │   ├── chat.tsx               # Main chat component
 │   ├── message.tsx            # Message rendering
 │   └── artifact.tsx           # Artifact handling
@@ -40,6 +45,11 @@ The architecture leverages modern web development patterns with a focus on serve
 │   │   ├── providers.ts       # AI provider configuration
 │   │   └── prompts.ts         # System prompts
 │   ├── artifacts/             # Artifact implementation
+│   ├── calendar/              # Calendar functionality
+│   │   └── types.ts           # Calendar type definitions
+│   ├── composio/              # Composio integration
+│   │   ├── config.ts          # Composio configuration
+│   │   └── calendar.ts        # Calendar service integration
 │   ├── db/                    # Database operations
 │   │   ├── migrations/        # Schema migrations
 │   │   ├── schema.ts          # Database schema
@@ -74,6 +84,10 @@ The application follows a layered architecture organized around the Next.js App 
 - **Provider Abstraction**: Implementation in `lib/ai/providers.ts` offers a unified interface to multiple LLM providers
 - **Model Selection**: Dynamic model selection through the `models.ts` configuration
 - **Prompt Management**: Systematic prompt engineering in `prompts.ts` for different interaction types
+- **Tool Integration**: Function calling tools in `lib/ai/tools/` including:
+  - Document creation and management
+  - Weather data fetching
+  - Calendar appointment scheduling
 - **MCP Integration**: Enhanced context management through Model Context Protocol
 
 ### Data Persistence Layer

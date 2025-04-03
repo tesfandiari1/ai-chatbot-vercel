@@ -2,8 +2,6 @@ import { z } from 'zod';
 import type { ToolDefinition } from '@/lib/tools/types';
 import {
   composioToolset,
-  handleToolCalls as handleToolCall,
-  initializeCalendarTools,
 } from '@/lib/composio/config';
 import { OpenAI } from 'openai';
 import { getOAuthToken } from '@/lib/db/queries';

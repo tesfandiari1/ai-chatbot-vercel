@@ -1,7 +1,8 @@
 // This is a simplified version of the artifact registry type
 // In a real implementation, this would be more complex
 
-import { calendarArtifact } from '@/artifacts/calendar/server';
+// Comment out the calendar import
+// import { calendarArtifact } from '@/artifacts/calendar/server';
 
 export interface ArtifactDefinition<T = any> {
   name: string;
@@ -20,7 +21,7 @@ export const artifactRegistry: Record<string, ArtifactDefinition> = {
   code: {} as ArtifactDefinition, // Placeholder for the code artifact
   image: {} as ArtifactDefinition, // Placeholder for the image artifact
   sheet: {} as ArtifactDefinition, // Placeholder for the sheet artifact
-  calendar: calendarArtifact, // Our new calendar artifact
+  // calendar: calendarArtifact, // Calendar artifact disabled - now using chat-based calendar
 };
 
 // List of registered artifact kinds
@@ -29,8 +30,8 @@ export const artifactKinds = [
   'code',
   'image',
   'sheet',
-  'calendar',
+  // 'calendar', // Calendar artifact disabled - now using chat-based calendar
 ] as const;
 
-// Type for artifact kinds
+// Type for artifact kind
 export type ArtifactKind = (typeof artifactKinds)[number];

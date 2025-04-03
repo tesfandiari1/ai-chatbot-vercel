@@ -168,3 +168,19 @@ export const oauthToken = pgTable('OAuthToken', {
 });
 
 export type OAuthToken = InferSelectModel<typeof oauthToken>;
+
+export const appointment = pgTable('Appointment', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  date: text('date').notNull(),
+  timeSlot: text('timeSlot').notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone').notNull(),
+  notes: text('notes'),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull(),
+});
+
+export type Appointment = InferSelectModel<typeof appointment>;

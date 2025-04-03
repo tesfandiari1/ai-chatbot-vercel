@@ -23,6 +23,12 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import {
+  getCalendarAvailability,
+  getAvailableTimeSlots,
+  prepareAppointmentForm,
+  bookCalendarAppointment,
+} from '@/lib/ai/tools';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { NextResponse } from 'next/server';
@@ -106,6 +112,10 @@ export async function POST(request: Request) {
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'getCalendarAvailability',
+                  'getAvailableTimeSlots',
+                  'prepareAppointmentForm',
+                  'bookCalendarAppointment',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -117,6 +127,10 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            getCalendarAvailability,
+            getAvailableTimeSlots,
+            prepareAppointmentForm,
+            bookCalendarAppointment,
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {

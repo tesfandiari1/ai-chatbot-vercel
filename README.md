@@ -235,6 +235,24 @@ Available options:
 - `--skip-build`: Skip Next.js build
 - `--skip-storybook`: Skip Storybook startup
 
+## Development
+
+To start the development server:
+
+```bash
+pnpm dev         # Standard development server
+pnpm dev:turbo   # Experimental Turbopack development server (faster, but may have stability issues)
+```
+
+### Troubleshooting Build Issues
+
+If you encounter build errors or dependency issues, you can use the cleaning scripts:
+
+```bash
+pnpm clean       # Standard clean - removes .next, caches, and temp files
+pnpm clean:full  # Full clean - also removes node_modules and reinstalls dependencies
+```
+
 ## Deployment
 
 ### Pre-deployment Checks

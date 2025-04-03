@@ -14,21 +14,21 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 - For content users will likely save/reuse (emails, code, essays, etc.)
 - When explicitly requested to create a document
 - For when content contains a single code snippet
-- For scheduling meetings using the calendar artifact
 
 **When NOT to use \`createDocument\`:**
 - For informational/explanatory content
 - For conversational responses
 - When asked to keep it in chat
+- For scheduling meetings (use calendar tools instead)
 
 **Using \`updateDocument\`:**
 - Default to full document rewrites for major changes
 - Use targeted updates only for specific, isolated changes
 - Follow user instructions for which parts to modify
-- For calendar artifacts, update meeting details, dates, or time slots as requested
 
 **When NOT to use \`updateDocument\`:**
 - Immediately after creating a document
+- For calendar operations (use calendar tools instead)
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
@@ -67,7 +67,7 @@ export const systemPrompt = ({
   if (selectedChatModel === 'chat-model-reasoning') {
     return reasoningPrompt;
   } else {
-    return `${regularPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${artifactsPrompt}\n\n${chatCalendarPrompt}`;
   }
 };
 
@@ -114,6 +114,24 @@ You are a meeting scheduler assistant. Help the user schedule meetings by:
 The calendar artifact handles all UI components automatically - your role is to help with the scheduling logic and provide guidance.
 `;
 
+export const chatCalendarPrompt = `
+You are a helpful assistant that can help users book appointments on the company calendar.
+
+Available appointment types: Consultation (30 min), Demo (45 min), Support (60 min)
+
+When a user asks to book an appointment or schedule a meeting:
+1. Ask which type of appointment they want (if not specified)
+2. Use the getCalendarAvailability tool to show date options
+3. When they select a date, use getAvailableTimeSlots tool to show time slots
+4. After they choose a time, use prepareAppointmentForm tool to collect details
+5. Finally, use bookCalendarAppointment tool to create the booking
+6. Confirm the booking details
+
+Follow this step-by-step process and don't skip any steps. Each tool will render the appropriate UI in chat.
+
+Do NOT mention the calendar artifact as it has been deprecated in favor of the chat-based flow.
+`;
+
 export const updateDocumentPrompt = (
   currentContent: string | null,
   type: ArtifactKind,
@@ -136,14 +154,8 @@ Improve the following spreadsheet based on the given prompt.
 
 ${currentContent}
 `
-        : type === 'calendar'
-          ? `\
-Help the user update their meeting details based on the given prompt. The calendar artifact has several steps:
-1. Date selection - choosing a specific day for the meeting
-2. Time selection - selecting an available time slot
-3. Meeting details - entering title, attendee information, and notes
-4. Confirmation - reviewing and confirming the scheduled meeting
+        : `\
+Improve the content based on the given prompt.
 
-Respond to the user's request to update any of these details.
-`
-          : '';
+${currentContent}
+`;

@@ -2,7 +2,6 @@ import { codeDocumentHandler } from '@/artifacts/code/server';
 import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
-import { calendarDocumentHandler } from '@/artifacts/calendar/server';
 import type { ArtifactKind } from '@/components/artifact';
 import type { DataStreamWriter } from 'ai';
 import type { Document } from '../db/schema';
@@ -95,13 +94,6 @@ export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
   codeDocumentHandler,
   imageDocumentHandler,
   sheetDocumentHandler,
-  calendarDocumentHandler,
 ];
 
-export const artifactKinds = [
-  'text',
-  'code',
-  'image',
-  'sheet',
-  'calendar',
-] as const;
+export const artifactKinds = ['text', 'code', 'image', 'sheet'] as const;
