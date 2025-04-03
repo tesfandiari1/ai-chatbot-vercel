@@ -1,24 +1,139 @@
 'use client';
 
-import type { UIMessage } from 'ai';
-import cx from 'classnames';
-import { AnimatePresence, motion } from 'framer-motion';
+// Core React and UI imports
 import { memo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import equal from 'fast-deep-equal';
+import cx from 'classnames';
+import { cn } from '@/lib/utils';
+
+// Types
+import type { UIMessage } from 'ai';
 import type { Vote } from '@/lib/db/schema';
-import { DocumentToolCall, DocumentToolResult } from './document';
+import type { UseChatHelpers } from '@ai-sdk/react';
+
+// UI Components
+import { Button } from './ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+
+// Message Components
 import { PencilEditIcon, SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
-import { Weather } from './weather';
-import equal from 'fast-deep-equal';
-import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
-import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
-import type { UseChatHelpers } from '@ai-sdk/react';
+
+// Tool-specific Components
+import { Weather } from './weather';
+import { DocumentToolCall, DocumentToolResult } from './document';
+import { DocumentPreview } from './document-preview';
+import { renderCalendarTool, renderCalendarToolCall } from './calendar';
+
+// Constants for tool names to improve maintainability
+const CALENDAR_TOOL_NAMES = [
+  'getCalendarAvailability',
+  'getAvailableTimeSlots',
+  'prepareAppointmentForm',
+  'bookCalendarAppointment',
+  'searchCalendarEvents',
+  'cancelCalendarEvent',
+];
+
+const SKELETON_TOOLS = [
+  'getWeather',
+  'getCalendarAvailability',
+  'getAvailableTimeSlots',
+  'prepareAppointmentForm',
+];
+
+/**
+ * Renders the appropriate component for a tool result
+ * @param toolName The name of the tool
+ * @param result The result data from the tool
+ * @param isLoading Whether the UI is in loading state
+ * @param isReadonly Whether the UI is in readonly mode
+ * @returns The React component to display
+ */
+function renderToolResult(
+  toolName: string,
+  result: any,
+  isLoading: boolean,
+  isReadonly: boolean,
+) {
+  // Check if it's a calendar tool first
+  if (CALENDAR_TOOL_NAMES.includes(toolName)) {
+    return renderCalendarTool(toolName, result, isLoading);
+  }
+
+  // Handle other tool types
+  switch (toolName) {
+    case 'getWeather':
+      return <Weather weatherAtLocation={result} />;
+    case 'createDocument':
+      return <DocumentPreview isReadonly={isReadonly} result={result} />;
+    case 'updateDocument':
+      return (
+        <DocumentToolResult
+          type="update"
+          result={result}
+          isReadonly={isReadonly}
+        />
+      );
+    case 'requestSuggestions':
+      return (
+        <DocumentToolResult
+          type="request-suggestions"
+          result={result}
+          isReadonly={isReadonly}
+        />
+      );
+    default:
+      return null;
+  }
+}
+
+/**
+ * Renders the appropriate component for a tool call (before result is received)
+ * @param toolName The name of the tool
+ * @param args The arguments passed to the tool
+ * @param isLoading Whether the UI is in loading state
+ * @param isReadonly Whether the UI is in readonly mode
+ * @returns The React component to display
+ */
+function renderToolCall(
+  toolName: string,
+  args: any,
+  isLoading: boolean,
+  isReadonly: boolean,
+) {
+  // Check if it's a calendar tool first
+  if (CALENDAR_TOOL_NAMES.includes(toolName)) {
+    return renderCalendarToolCall(toolName, args, isLoading);
+  }
+
+  // Handle other tool types
+  switch (toolName) {
+    case 'getWeather':
+      return <Weather />;
+    case 'createDocument':
+      return <DocumentPreview isReadonly={isReadonly} args={args} />;
+    case 'updateDocument':
+      return (
+        <DocumentToolCall type="update" args={args} isReadonly={isReadonly} />
+      );
+    case 'requestSuggestions':
+      return (
+        <DocumentToolCall
+          type="request-suggestions"
+          args={args}
+          isReadonly={isReadonly}
+        />
+      );
+    default:
+      return null;
+  }
+}
 
 const PurePreviewMessage = ({
   chatId,
@@ -153,30 +268,17 @@ const PurePreviewMessage = ({
                 if (state === 'call') {
                   const { args } = toolInvocation;
 
+                  // Determine if this tool should have skeleton loading style
+                  const shouldShowSkeleton = SKELETON_TOOLS.includes(toolName);
+
                   return (
                     <div
                       key={toolCallId}
                       className={cx({
-                        skeleton: ['getWeather'].includes(toolName),
+                        skeleton: shouldShowSkeleton,
                       })}
                     >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall
-                          type="update"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : null}
+                      {renderToolCall(toolName, args, isLoading, isReadonly)}
                     </div>
                   );
                 }
@@ -186,40 +288,27 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {toolName === 'getWeather' ? (
-                        <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview
-                          isReadonly={isReadonly}
-                          result={result}
-                        />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolResult
-                          type="update"
-                          result={result}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolResult
-                          type="request-suggestions"
-                          result={result}
-                          isReadonly={isReadonly}
-                        />
-                      ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
+                      {renderToolResult(
+                        toolName,
+                        result,
+                        isLoading,
+                        isReadonly,
                       )}
                     </div>
                   );
                 }
+
+                return null;
               }
+
+              return null;
             })}
 
-            {!isReadonly && (
+            {message.role !== 'user' && !isLoading && (
               <MessageActions
-                key={`action-${message.id}`}
                 chatId={chatId}
-                message={message}
                 vote={vote}
+                message={message}
                 isLoading={isLoading}
               />
             )}
@@ -233,12 +322,11 @@ const PurePreviewMessage = ({
 export const PreviewMessage = memo(
   PurePreviewMessage,
   (prevProps, nextProps) => {
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.message.id !== nextProps.message.id) return false;
-    if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
-    if (!equal(prevProps.vote, nextProps.vote)) return false;
-
-    return true;
+    return (
+      prevProps.vote === nextProps.vote &&
+      prevProps.isLoading === nextProps.isLoading &&
+      equal(prevProps.message, nextProps.message)
+    );
   },
 );
 
@@ -248,7 +336,7 @@ export const ThinkingMessage = () => {
   return (
     <motion.div
       data-testid="message-assistant-loading"
-      className="w-full mx-auto max-w-3xl px-4 group/message "
+      className="w-full mx-auto max-w-3xl px-4 group/message"
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
       data-role={role}

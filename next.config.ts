@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: true,
   },
+  transpilePackages: ['@ai-sdk', 'ai'],
   images: {
     remotePatterns: [
       {

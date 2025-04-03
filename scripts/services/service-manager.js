@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-require('dotenv').config({ path: '.env.local' });
-const { spawn, exec } = require('node:child_process');
-const { createClient } = require('redis');
-const { Pool } = require('pg');
-const fs = require('node:fs');
-const net = require('node:net');
+import dotenv from 'dotenv';
+import { spawn, exec } from 'node:child_process';
+import { createClient } from 'redis';
+import pg from 'pg';
+import fs from 'node:fs';
+import net from 'node:net';
+
+const { Pool } = pg;
+
+dotenv.config({ path: '.env.local' });
 
 // Configuration
 const SERVICES = {

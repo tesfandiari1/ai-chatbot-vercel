@@ -28,6 +28,9 @@ import {
   getAvailableTimeSlots,
   prepareAppointmentForm,
   bookCalendarAppointment,
+  searchCalendarEvents,
+  cancelCalendarEvent,
+  registerTools,
 } from '@/lib/ai/tools';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
@@ -116,22 +119,29 @@ export async function POST(request: Request) {
                   'getAvailableTimeSlots',
                   'prepareAppointmentForm',
                   'bookCalendarAppointment',
+                  'searchCalendarEvents',
+                  'cancelCalendarEvent',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-            getCalendarAvailability,
-            getAvailableTimeSlots,
-            prepareAppointmentForm,
-            bookCalendarAppointment,
-          },
+          tools: registerTools(
+            {
+              getWeather,
+              createDocument: createDocument({ session, dataStream }),
+              updateDocument: updateDocument({ session, dataStream }),
+              requestSuggestions: requestSuggestions({
+                session,
+                dataStream,
+              }),
+              getCalendarAvailability,
+              getAvailableTimeSlots,
+              prepareAppointmentForm,
+              bookCalendarAppointment,
+              searchCalendarEvents,
+              cancelCalendarEvent,
+            },
+            { validateTools: true },
+          ),
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {

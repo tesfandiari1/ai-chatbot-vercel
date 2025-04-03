@@ -14,6 +14,11 @@ import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 
+// Type adapter function to ensure compatibility
+function adaptUIMessages(messages: any[]): UIMessage[] {
+  return messages as UIMessage[];
+}
+
 export function Chat({
   id,
   initialMessages,
@@ -62,6 +67,9 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
+  // Adapt messages for compatibility
+  const adaptedMessages = adaptUIMessages(messages);
+
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
@@ -76,7 +84,7 @@ export function Chat({
           chatId={id}
           status={status}
           votes={votes}
-          messages={messages}
+          messages={adaptedMessages}
           setMessages={setMessages}
           reload={reload}
           isReadonly={isReadonly}
@@ -94,7 +102,7 @@ export function Chat({
               stop={stop}
               attachments={attachments}
               setAttachments={setAttachments}
-              messages={messages}
+              messages={adaptedMessages}
               setMessages={setMessages}
               append={append}
             />
@@ -112,7 +120,7 @@ export function Chat({
         attachments={attachments}
         setAttachments={setAttachments}
         append={append}
-        messages={messages}
+        messages={adaptedMessages}
         setMessages={setMessages}
         reload={reload}
         votes={votes}

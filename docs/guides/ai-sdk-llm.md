@@ -14266,5 +14266,3 @@ console.log(providerMetadata.myProvider.customMetric);
 ```
 
 This allows you to access provider-specific information while maintaining a consistent interface across different providers.
-
-Apollo

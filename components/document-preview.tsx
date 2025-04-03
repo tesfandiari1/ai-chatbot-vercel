@@ -8,7 +8,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import type { ArtifactKind, UIArtifact } from './artifact';
+import type { UIArtifact } from './artifact';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
 import { cn, fetcher } from '@/lib/utils';
 import type { Document } from '@/lib/db/schema';
@@ -21,6 +21,7 @@ import { useArtifact } from '@/hooks/use-artifact';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
+import type { ArtifactKind } from '@/lib/artifacts/registry';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
@@ -108,7 +109,7 @@ export function DocumentPreview({
       />
       <DocumentHeader
         title={document.title}
-        kind={document.kind}
+        kind={document.kind as Exclude<typeof document.kind, 'calendar'>}
         isStreaming={artifact.status === 'streaming'}
       />
       <DocumentContent document={document} />
@@ -146,7 +147,7 @@ const PureHitboxLayer = ({
   result,
   setArtifact,
 }: {
-  hitboxRef: React.RefObject<HTMLDivElement>;
+  hitboxRef: React.RefObject<HTMLDivElement | null>;
   result: any;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),

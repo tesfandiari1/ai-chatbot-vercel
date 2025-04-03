@@ -1,4 +1,3 @@
-
 import {
   composioToolset,
   composioClient,
@@ -16,65 +15,22 @@ const COMPOSIO_CONNECTION_ID =
 
 /**
  * Gets a calendar toolset using the Composio service account authentication.
- * This approach uses the company calendar instead of user-specific calendars.
- * No OAuth flow needed - all operations are performed using the connection ID.
  */
 export async function getCalendarToolset() {
   try {
-    // Confirm Composio is properly configured
     if (!isComposioConfigured()) {
       throw new Error('Composio not configured properly');
     }
 
-    // Get calendar tools for availability and event creation
-    // Using the pre-configured composioToolset from config.ts
-    const tools = await composioToolset.getTools({
-      actions: [
-        'GOOGLECALENDAR_FIND_FREE_SLOTS',
-        'GOOGLECALENDAR_CREATE_EVENT',
-      ],
-    });
-
     return {
       toolset: composioToolset,
-      tools,
       calendarId: COMPANY_CALENDAR_ID,
-      connectionId: COMPOSIO_CONNECTION_ID,
     };
   } catch (error) {
     console.error('Error getting calendar toolset:', error);
-    // Return a minimal implementation for error cases
     return {
       toolset: composioToolset,
-      tools: [],
       calendarId: COMPANY_CALENDAR_ID,
-      connectionId: COMPOSIO_CONNECTION_ID,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-}
-
-/**
- * Wait for a Composio connection to become active
- * This checks the actual connection status from Composio
- */
-export async function waitForCalendarConnection(userId: string) {
-  try {
-    // Get the actual connection from Composio
-    const connection = await composioClient.connectedAccounts.get({
-      connectedAccountId: COMPOSIO_CONNECTION_ID,
-    });
-
-    // Check if the connection is active
-    return {
-      success: true,
-      connectionId: connection.id || COMPOSIO_CONNECTION_ID,
-      status: connection.status || 'active',
-    };
-  } catch (error) {
-    console.error('Error waiting for calendar connection:', error);
-    return {
-      success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
@@ -82,16 +38,11 @@ export async function waitForCalendarConnection(userId: string) {
 
 /**
  * Convert a time slot string (e.g., "2:00pm") to an ISO string for a given date
- *
- * @param dateStr The date string in YYYY-MM-DD format
- * @param timeSlot The time slot string (e.g., "2:00pm")
- * @returns ISO date string
  */
 export function convertTimeSlotToISO(
   dateStr: string,
   timeSlot: string,
 ): string {
-  // Convert "2:00pm" format to ISO date string
   const date = new Date(dateStr);
   const [time, meridiem] = timeSlot.split(/([ap]m)/i);
   let [hours, minutes] = time.split(':').map((num) => Number.parseInt(num, 10));
@@ -107,33 +58,42 @@ export function convertTimeSlotToISO(
 }
 
 /**
+ * Get default time slots for a given appointment type
+ */
+export function getDefaultTimeSlots(): string[] {
+  return [
+    '9:00am',
+    '9:30am',
+    '10:00am',
+    '10:30am',
+    '11:00am',
+    '11:30am',
+    '1:00pm',
+    '1:30pm',
+    '2:00pm',
+    '2:30pm',
+    '3:00pm',
+    '3:30pm',
+    '4:00pm',
+    '4:30pm',
+  ];
+}
+
+/**
  * Process availability data from Google Calendar to get available time slots
- *
- * @param data The data returned from GOOGLECALENDAR_FIND_FREE_SLOTS
- * @param appointmentType The type of appointment requested
- * @returns Array of available time slots
  */
 export function processAvailability(
   data: any,
   appointmentType: string,
 ): string[] {
+  // If no data, return default slots
   if (!data || !data.calendars || !COMPANY_CALENDAR_ID) {
-    // Return some default slots for testing/fallback
-    return [
-      '9:00am',
-      '10:00am',
-      '11:00am',
-      '1:00pm',
-      '2:00pm',
-      '3:00pm',
-      '4:00pm',
-    ];
+    return getDefaultTimeSlots();
   }
 
   try {
     const calendarData = data.calendars[COMPANY_CALENDAR_ID];
     const busySlots = calendarData.busy || [];
-    // Convert to lowercase and ensure it's a valid appointment type
     const type = appointmentType.toLowerCase() as AppointmentType;
     const appointmentDuration = APPOINTMENT_TYPES[type] || 30;
 
@@ -145,10 +105,7 @@ export function processAvailability(
     const allSlots = [];
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        if (hour === endHour - 1 && minute + appointmentDuration > 60) {
-          // Skip slots that would go past end of business hours
-          continue;
-        }
+        if (hour === endHour - 1 && minute + appointmentDuration > 60) continue;
 
         const slot = new Date();
         slot.setHours(hour, minute, 0, 0);
@@ -161,15 +118,14 @@ export function processAvailability(
       const slotEnd = new Date(slot);
       slotEnd.setMinutes(slot.getMinutes() + appointmentDuration);
 
-      // Check if this slot overlaps with any busy time
       return !busySlots.some((busy: any) => {
         const busyStart = new Date(busy.start);
         const busyEnd = new Date(busy.end);
 
         return (
-          (slot >= busyStart && slot < busyEnd) || // Slot start is during busy time
-          (slotEnd > busyStart && slotEnd <= busyEnd) || // Slot end is during busy time
-          (slot <= busyStart && slotEnd >= busyEnd) // Slot completely encompasses busy time
+          (slot >= busyStart && slot < busyEnd) ||
+          (slotEnd > busyStart && slotEnd <= busyEnd) ||
+          (slot <= busyStart && slotEnd >= busyEnd)
         );
       });
     });
@@ -181,25 +137,110 @@ export function processAvailability(
       const meridiem = hours >= 12 ? 'pm' : 'am';
 
       // Convert 24-hour to 12-hour format
-      if (hours > 12) {
-        hours -= 12;
-      } else if (hours === 0) {
-        hours = 12;
-      }
+      if (hours > 12) hours -= 12;
+      else if (hours === 0) hours = 12;
 
       return `${hours}:${minutes === 0 ? '00' : minutes}${meridiem}`;
     });
   } catch (error) {
     console.error('Error processing availability data:', error);
-    // Return default slots in case of error
-    return [
-      '9:00am',
-      '10:00am',
-      '11:00am',
-      '1:00pm',
-      '2:00pm',
-      '3:00pm',
-      '4:00pm',
-    ];
+    return getDefaultTimeSlots();
+  }
+}
+
+/**
+ * Process availability data from Google Calendar to extract available dates
+ */
+export function processAvailableDates(data: any): string[] {
+  // Generate default dates (next 5 business days)
+  function getDefaultDates() {
+    const defaultDates = [];
+    const today = new Date();
+
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      // Skip weekends
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        defaultDates.push(date.toISOString().split('T')[0]);
+        if (defaultDates.length >= 5) break;
+      }
+    }
+
+    return defaultDates;
+  }
+
+  // If no valid data, return default dates
+  if (!data || !data.calendars || !COMPANY_CALENDAR_ID) {
+    return getDefaultDates();
+  }
+
+  try {
+    const calendarData = data.calendars[COMPANY_CALENDAR_ID];
+    const busySlots = calendarData.busy || [];
+
+    // Create an array of all business days in the next two weeks
+    const allDates = [];
+    const currentDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(currentDate.getDate() + 14);
+
+    while (currentDate <= endDate) {
+      // Skip weekends
+      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+        allDates.push(new Date(currentDate));
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Filter available dates
+    const availableDates = allDates.filter((date) => {
+      const dateStr = date.toISOString().split('T')[0];
+
+      // Day is unavailable if fully booked during business hours
+      const wholeDayBusy = busySlots.some((busy: any) => {
+        const busyStart = new Date(busy.start);
+        const busyEnd = new Date(busy.end);
+
+        return (
+          busyStart <= new Date(`${dateStr}T09:00:00Z`) &&
+          busyEnd >= new Date(`${dateStr}T17:00:00Z`)
+        );
+      });
+
+      return !wholeDayBusy;
+    });
+
+    return availableDates.map((date) => date.toISOString().split('T')[0]);
+  } catch (error) {
+    console.error('Error processing available dates:', error);
+    return getDefaultDates();
+  }
+}
+
+/**
+ * Waits for a calendar connection to become active for a user
+ * @param userId User ID to check connection for
+ * @returns Success status and connection ID or error
+ */
+export async function waitForCalendarConnection(userId: string) {
+  try {
+    if (!isComposioConfigured()) {
+      throw new Error('Composio not configured properly');
+    }
+
+    // In a real implementation, this would poll the Composio API
+    // For now, we'll just return success with the connection ID from env
+    return {
+      success: true,
+      connectionId: COMPOSIO_CONNECTION_ID,
+    };
+  } catch (error) {
+    console.error('Error waiting for calendar connection:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 }

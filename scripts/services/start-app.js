@@ -1,10 +1,13 @@
 #!/usr/bin/env node
-require('dotenv').config({ path: '.env.local' });
-const { spawn, exec } = require('node:child_process');
-const net = require('node:net');
-const fs = require('node:fs');
-const path = require('node:path');
-const { Pool } = require('pg');
+import dotenv from 'dotenv';
+import { spawn, exec } from 'node:child_process';
+import net from 'node:net';
+import fs from 'node:fs';
+import path from 'node:path';
+import pg from 'pg';
+const { Pool } = pg;
+
+dotenv.config({ path: '.env.local' });
 
 // Colors for console output
 const colors = {
@@ -164,7 +167,7 @@ function startNextApp() {
 function startMcpServer() {
   console.log(`${colors.magenta}Starting MCP server...${colors.reset}`);
 
-  const mcpProcess = spawn('node', ['scripts/testing/test-mcp-local.js'], {
+  const mcpProcess = spawn('node', ['scripts/mcp/test-mcp-local.js'], {
     stdio: 'inherit',
     shell: true,
   });

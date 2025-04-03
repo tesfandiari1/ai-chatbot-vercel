@@ -1,8 +1,8 @@
 // Simple script to test MCP functionality locally
 // Read environment variables directly from .env.local
-const fs = require('node:fs');
-const https = require('node:https');
-const http = require('node:http');
+import fs from 'node:fs';
+import https from 'node:https';
+import http from 'node:http';
 
 // Load environment variables from .env.local
 const envContent = fs.readFileSync('.env.local', 'utf8');

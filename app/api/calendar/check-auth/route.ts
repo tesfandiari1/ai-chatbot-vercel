@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getOAuthToken } from '@/lib/db/queries';
 import { auth } from '@/app/(auth)/auth';
 
@@ -26,6 +26,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: "Unauthorized to check this user's auth status" },
         { status: 403 },
+      );
+    }
+
+    // Ensure user.id exists
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: 'User ID not found in session' },
+        { status: 401 },
       );
     }
 

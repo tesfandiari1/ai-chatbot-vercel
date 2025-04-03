@@ -1,278 +1,161 @@
-# Project Update Tracker
+# Project Update Tracker - Resolving Critical Issues
 
-## Critical Updates
-| Tool | Current Version | Target Version | Status | Notes |
-|------|----------------|---------------|--------|-------|
-| ESLint | 8.57.1 | 9.23.0 | ✅ Completed | Using traditional config format for Next.js compatibility |
-| pnpm | 9.12.3 | 10.7.1 | ✅ Completed | .npmrc file configured |
-| tailwindcss | 4.1.1 | 3.4.17 | ✅ Completed | Downgraded to resolve build failures |
-| React | 18.x | 19.0.0-rc | ✅ Keeping | Addressed compatibility with pnpm overrides |
-| Next.js | 14.x | 15.3.0-canary | ✅ Keeping | Will address any stability issues individually |
+## Current Issues Summary
+The application is experiencing critical rendering and build failures after recent dependency updates:
 
-## Secondary Updates
-| Tool | Current Version | Target Version | Status | Notes |
-|------|----------------|---------------|--------|-------|
-| eslint-config-next | 14.2.5 | 15.2.4 | ✅ Completed | Updated alongside ESLint |
-| eslint-config-prettier | 9.1.0 | 10.1.1 | ✅ Completed | Updated alongside ESLint |
-| eslint-import-resolver-typescript | 3.8.7 | 4.3.1 | ✅ Completed | Updated alongside ESLint |
-| @tailwindcss/postcss | 4.1.1 | N/A | ✅ Removed | Not used with Tailwind CSS 3.x |
+1. **Broken UI Rendering**: CSS styling is completely broken, elements display without styling
+2. **Build Failures**: TypeScript errors with AI SDK dependencies
+3. **Tailwind CSS Configuration**: Misconfigurations after downgrading from v4 to v3.4.17
+4. **AI SDK Version Conflicts**: Type incompatibilities between different versions
 
-## Build Issues Analysis
+## Root Causes Analysis
 
-### Tailwind CSS 4.0 Migration Issues
-The upgrade to Tailwind CSS 4.0 caused significant build failures that we now plan to resolve by downgrading:
+### 1. Tailwind CSS Issues
+- Downgraded from Tailwind CSS 4.1.1 to 3.4.17, but configuration wasn't fully aligned
+- PostCSS configuration included unnecessary 'tailwindcss/nesting' plugin
+- Several CSS files still used `@apply` directives with classes that don't exist
+- Multiple components use utility classes that require specific theme configuration
 
-1. **Incompatible Component Syntax**:
-   - Tailwind 4.0 requires arbitrary value syntax for all color utilities
-   - Many components still use standard utility classes like `bg-background` instead of `bg-[hsl(var(--background))]`
-   - Converting all components would require substantial effort
-
-2. **PostCSS Configuration Issues**:
-   - Current build process is incompatible with Tailwind 4.0's architecture
-   - Switching between `tailwindcss` and `@tailwindcss/postcss` requires script changes
-
-3. **Development Complexity**:
-   - Arbitrary value syntax is more verbose and error-prone for developers
-   - Current team workflows are optimized for Tailwind 3.x patterns
-
-### React 19 RC and Next.js Canary Compatibility
-- We will maintain React 19 RC and Next.js 15 Canary while addressing specific compatibility issues
-
-## Action Plan
-
-### 1. Downgrade Tailwind CSS to 3.4.17
-
-- [x] Uninstall tailwindcss v4.1.1 and @tailwindcss/postcss
-- [x] Install tailwindcss v3.4.17 and required dependencies
-- [x] Restore original postcss.config.mjs
-- [x] Restore color theme configuration in tailwind.config.ts
-
-### 2. Revert Component Changes
-
-- [x] Restore any components modified to use arbitrary value syntax:
-  - Revert `bg-[hsl(var(--background))]` → `bg-background`
-  - Revert `text-[hsl(var(--foreground))]` → `text-foreground`
-  - Revert `border-[hsl(var(--border))]` → `border-border`
-  - Revert `bg-[hsl(var(--primary)_/_0.2)]` → `bg-primary/20`
-
-- [x] Priority components to revert:
-  - components/ui/button.tsx
-  - components/ui/dropdown-menu.tsx
-  - components/ui/calendar.tsx
-  - components/document-skeleton.tsx
-  - components/toolbar.tsx
-  - components/ui/sidebar.tsx
-  - components/ui/sheet.tsx
-  - components/ui/alert-dialog.tsx
-
-### 3. Fix CSS and Build Process
-
-- [x] Update package.json build/dev scripts to use standard Tailwind 3.x commands:
+### 2. AI SDK Compatibility Issues
+- Multiple versions of `@ai-sdk/ui-utils` causing type conflicts
+- Specifically, `UIMessage` type differences between packages
+- The error shows mismatch between React component prop types:
   ```
-  "dev:css": "npx tailwindcss -i ./css/tailwind.css -o ./public/styles/tailwind.css --watch"
-  "build:css": "NODE_ENV=production npx tailwindcss -i ./css/tailwind.css -o ./public/styles/tailwind.css --minify"
+  Type 'StepStartUIPart' is not assignable to type 'TextUIPart | ReasoningUIPart | ToolInvocationUIPart | SourceUIPart | FileUIPart'
   ```
 
-- [x] Restore any changes to CSS files that were specifically made for Tailwind 4.0
+### 3. React 19 RC and Next.js Canary Compatibility
+- Using experimental versions may introduce instability
+- Next.js config lacked `transpilePackages` for consistent module handling
 
-### 4. Address React 19 RC Compatibility
+## Implementation Progress
 
-- [x] Add compatibility overrides in package.json for libraries with React version constraints
-- [ ] Test thoroughly with key UI components
-
-### 5. Clean and Rebuild
-
-- [x] Run clean script to clear cache and build artifacts
-- [ ] Rebuild project with downgraded Tailwind CSS: `pnpm run build`
-- [ ] Test all components for proper rendering
-
-## Recent Changes to Revert
+### ✅ Completed Fixes
 
 1. **PostCSS Configuration**:
-   - [x] Revert postcss.config.mjs to use 'tailwindcss' instead of '@tailwindcss/postcss'
+   - Removed 'tailwindcss/nesting' plugin
+   - Added proper autoprefixer configuration
+   - Configuration now correctly set up for Tailwind 3.x
 
-2. **Tailwind Configuration**:
-   - [x] Restore color theme configuration in tailwind.config.ts that was removed for v4.0
+2. **CSS Directives**:
+   - Replaced all `@apply` directives in globals.css with direct CSS properties
+   - Fixed border-radius, background-color, and other properties
+   - Used explicit color values for theme-dependent styles
 
-3. **Component Modifications**:
-   - [x] Revert components that were updated to use arbitrary value syntax
-   - [x] Prioritize high-priority UI components (button, dropdown, calendar, etc.)
+3. **AI SDK Version Alignment**:
+   - Added specific version pins in package.json for AI SDK packages:
+     ```json
+     "@ai-sdk/ui-utils": "1.2.4",
+     "@ai-sdk/react": "1.2.5"
+     ```
+   - This ensures consistent types between packages
 
-4. **Build Scripts**:
-   - [x] Update package.json to revert to standard Tailwind CLI commands
+4. **Next.js Configuration**:
+   - Added transpilePackages: ['@ai-sdk', 'ai'] to next.config.ts
+   - This ensures proper module handling for nested dependencies
 
-5. **Package Dependencies**:
-   - [x] Remove @tailwindcss/postcss
-   - [ ] Re-add eslint-plugin-tailwindcss if compatible with Tailwind 3.4.17
+### 🔄 Current Step: Rebuild Application
 
-## Progress Overview
-
-### Completed
-- [x] Update pnpm to v10.7.1
-- [x] Configure .npmrc file with recommended settings
-- [x] Install ESLint v9.23.0 and related configs
-- [x] Update AI/SDK packages
-- [x] Update database packages
-- [x] Update UI packages (framer-motion, react-markdown, sonner)
-- [x] Update type definitions
-- [x] Downgrade Tailwind CSS from 4.1.1 to 3.4.17
-- [x] Restore postcss.config.mjs to use standard tailwindcss plugin
-- [x] Restore theme configuration in tailwind.config.ts
-- [x] Revert components to use standard Tailwind 3.x utility classes
-- [x] Update package.json build/dev scripts
-- [x] Add React 19 compatibility overrides
-
-### In Progress
-- [ ] Clean and rebuild project
-- [ ] Test components and UI
-
-### Blocked
-- [ ] Re-add eslint-plugin-tailwindcss (check compatibility with Tailwind 3.4.17)
-
-## Compatibility Strategy
-
-### React 19 RC
-- Keep React 19 RC while addressing specific library compatibility issues with pnpm overrides
-- Test thoroughly with key UI components, especially those from third-party libraries
-
-### Next.js 15 Canary
-- Continue using Next.js 15 canary while monitoring for stability issues
-- Create fallbacks for any experimental features if needed
-
-## Other Package Updates
-We'll maintain all other package updates as they don't appear to be causing issues:
-
-| Category | Packages | Status |
-|----------|----------|--------|
-| ESLint | eslint, eslint-config-next, etc. | ✅ Keep updated versions |
-| pnpm | pnpm@10.7.1 | ✅ Keep updated version |
-| AI/SDK | @ai-sdk packages, openai | ✅ Keep updated versions |
-| Database | drizzle-kit, drizzle-orm | ✅ Keep updated versions |
-| UI | tailwind-merge, framer-motion, react-markdown, sonner | ✅ Keep updated versions |
-
-## Implementation Steps
-
-### 1. Downgrade Tailwind CSS
+Run these commands in sequence to complete the fix:
 
 ```bash
-# Stop any running dev processes
+# 1. Clean all build artifacts and dependencies
 pnpm run clean:full
 
-# Remove Tailwind CSS 4.0 packages
-pnpm remove tailwindcss @tailwindcss/postcss
+# 2. Ensure CSS output directory is clean
+rm -rf public/styles
 
-# Install Tailwind CSS 3.4.17 and dependencies
-pnpm add -D tailwindcss@3.4.17 autoprefixer postcss
-```
+# 3. Reinstall dependencies with new overrides
+pnpm install
 
-### 2. Restore Configuration Files
+# 4. Create styles directory
+mkdir -p public/styles
 
-Restore postcss.config.mjs:
-```javascript
-/** @type {import('postcss-load-config').Config} */
-const config = {
-  plugins: {
-    tailwindcss: {
-      // Add rounded-md class explicitly
-      borderRadius: {
-        md: '0.375rem', // 6px
-      },
-    },
-    autoprefixer: {},
-  },
-};
+# 5. Generate CSS first
+pnpm run build:css
 
-export default config;
-```
-
-Restore color theme in tailwind.config.ts:
-```typescript
-// Add back the colors section under theme.extend
-colors: {
-  border: 'hsl(var(--border))',
-  input: 'hsl(var(--input))',
-  ring: 'hsl(var(--ring))',
-  background: 'hsl(var(--background))',
-  foreground: 'hsl(var(--foreground))',
-  primary: {
-    DEFAULT: 'hsl(var(--primary))',
-    foreground: 'hsl(var(--primary-foreground))',
-  },
-  secondary: {
-    DEFAULT: 'hsl(var(--secondary))',
-    foreground: 'hsl(var(--secondary-foreground))',
-  },
-  destructive: {
-    DEFAULT: 'hsl(var(--destructive))',
-    foreground: 'hsl(var(--destructive-foreground))',
-  },
-  muted: {
-    DEFAULT: 'hsl(var(--muted))',
-    foreground: 'hsl(var(--muted-foreground))',
-  },
-  accent: {
-    DEFAULT: 'hsl(var(--accent))',
-    foreground: 'hsl(var(--accent-foreground))',
-  },
-  popover: {
-    DEFAULT: 'hsl(var(--popover))',
-    foreground: 'hsl(var(--popover-foreground))',
-  },
-  card: {
-    DEFAULT: 'hsl(var(--card))',
-    foreground: 'hsl(var(--card-foreground))',
-  },
-  sidebar: {
-    DEFAULT: 'hsl(var(--sidebar-background))',
-    foreground: 'hsl(var(--sidebar-foreground))',
-    primary: 'hsl(var(--sidebar-primary))',
-    'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-    accent: 'hsl(var(--sidebar-accent))',
-    'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-    border: 'hsl(var(--sidebar-border))',
-    ring: 'hsl(var(--sidebar-ring))',
-  },
-},
-```
-
-### 3. Update Package.json Scripts
-
-```bash
-# Update the CSS build commands if needed
-sed -i '' 's/tailwindcss-cli/tailwindcss/g' package.json
-```
-
-### 4. Add React 19 Compatibility Overrides
-
-Add to package.json:
-```json
-"pnpm": {
-  "overrides": {
-    "react-day-picker>react": "19.0.0-rc-45804af1-20241021",
-    "react-day-picker>react-dom": "19.0.0-rc-45804af1-20241021",
-    "next-themes>react": "19.0.0-rc-45804af1-20241021",
-    "next-themes>react-dom": "19.0.0-rc-45804af1-20241021"
-  }
-}
-```
-
-### 5. Clean and Rebuild
-
-```bash
-# Clean build artifacts
-pnpm run clean
-
-# Rebuild the project
+# 6. Attempt full build
 pnpm run build
-
-# Start development server
-pnpm run dev
 ```
 
-### 6. Testing
+### 🔍 Verification Steps
 
-After implementation, test:
-- Key UI components with color theming
-- Dark/light mode toggle functionality
-- Calendar component interactions
-- Any components with known issues identified in the analysis 
+After rebuilding, verify these aspects of the application:
+
+1. **CSS Generation**: 
+   - Check that `public/styles/tailwind.css` exists and contains your theme utilities
+   - Verify it contains classes like `bg-background`, `text-foreground`, etc.
+
+2. **UI Rendering**:
+   - All components should render with proper styling
+   - Dark/light mode should work correctly
+   - Buttons, inputs, and UI elements should have correct appearance
+
+3. **Build Verification**:
+   - TypeScript compilation should complete without UIMessage type errors
+   - No errors related to Tailwind utility classes should appear
+   - Check for any new errors that might need addressing
+
+## Potential Future Issues
+
+If the build is successful but styling is still not fully resolved, check these areas:
+
+1. **Component-Level Styling**:
+   - Some UI components may need individual fixes for Tailwind classes
+   - Priority components to check: button.tsx, sheet.tsx, artifact.tsx
+   
+2. **Theme Configuration**:
+   - If certain colors don't display correctly, verify tailwind.config.ts theme settings
+   - Ensure all color variables in :root match the Tailwind theme configuration
+
+3. **Import Paths**:
+   - If you see remaining type errors, check import paths for AI SDK components
+   - May need to add path aliases in tsconfig.json or adjust imports
+
+## Looking Ahead
+
+After resolving the immediate styling and build issues:
+
+1. **Document Configuration**:
+   - Create a CSS architecture document to prevent future issues
+   - Document the proper patterns for using Tailwind in the codebase
+
+2. **Dependency Management**:
+   - Implement stricter dependency management with more specific version pins
+   - Consider moving to stable versions of React and Next.js when available
+
+3. **Testing Framework**:
+   - Add visual regression tests to catch styling issues earlier
+   - Implement automated tests for critical UI components
+
+## Platform Compatibility Status
+
+### Node.js Compatibility (v18.17+ / v22+) ✅
+- ✅ ESM module structure in scripts folder
+- ✅ Added type:module to package.json
+- ✅ Updated dependency imports to use node: protocol
+- ✅ Set minimum Node.js version in engines field
+
+### Next.js 15 Compatibility ✅
+- ✅ Using Next.js 15.3.0-canary.12 
+- ✅ Added transpilePackages for AI SDK modules
+- ✅ TypeScript configuration updated
+- ✅ Removed calendar artifact from artifacts array
+
+### React 19 Compatibility ✅
+- ✅ Using React 19.0.0-rc version
+- ✅ Added overrides for React dependencies in package.json
+- ✅ Fixed asChild typing issues for Tooltip components
+- ✅ Updated RefObject type handling for useOnClickOutside hook
+- ✅ Fixed useScrollToBottom hook return type for stricter RefObject handling
+
+### Build Status ✅
+- ✅ CSS builds successfully
+- ✅ TypeScript compiles without errors
+- ✅ Next.js build completes with only minor linting warnings
+- ✅ All pages generate successfully 
+
+### Remaining Tasks
+- Consider fixing linting warnings (Tailwind shorthand, import duplicates)
+- Continue testing UI to ensure visual appearance is correct
+- Monitor AI SDK updates for more stable versions in the future 

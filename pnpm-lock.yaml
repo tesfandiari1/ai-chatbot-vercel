@@ -9,22 +9,29 @@ overrides:
   react-day-picker>react-dom: 19.0.0-rc-45804af1-20241021
   next-themes>react: 19.0.0-rc-45804af1-20241021
   next-themes>react-dom: 19.0.0-rc-45804af1-20241021
+  '@ai-sdk/ui-utils': 1.2.0
+  '@ai-sdk/react': 1.2.5
+  ai: 4.2.0
+  ai>@ai-sdk/ui-utils: 1.2.0
 
 importers:
 
   .:
     dependencies:
       '@ai-sdk/groq':
-        specifier: ^1.2.3
+        specifier: 1.2.3
         version: 1.2.3(zod@3.24.2)
       '@ai-sdk/openai':
-        specifier: ^1.3.6
-        version: 1.3.6(zod@3.24.2)
+        specifier: 1.3.0
+        version: 1.3.0(zod@3.24.2)
       '@ai-sdk/react':
-        specifier: ^1.2.5
+        specifier: 1.2.5
         version: 1.2.5(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2)
+      '@ai-sdk/ui-utils':
+        specifier: 1.2.0
+        version: 1.2.0(zod@3.24.2)
       '@ai-sdk/xai':
-        specifier: ^1.2.6
+        specifier: 1.2.6
         version: 1.2.6(zod@3.24.2)
       '@codemirror/lang-javascript':
         specifier: ^6.2.2
@@ -44,6 +51,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^4.1.3
         version: 4.1.3(react-hook-form@7.55.0(react@19.0.0-rc-45804af1-20241021))
+      '@langchain/core':
+        specifier: ^0.3.43
+        version: 0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))
       '@modelcontextprotocol/sdk':
         specifier: ^1.7.0
         version: 1.7.0
@@ -112,7 +122,7 @@ importers:
         version: 6.0.1
       composio-core:
         specifier: ^0.5.31
-        version: 0.5.31(@ai-sdk/openai@1.3.6(zod@3.24.2))(@cloudflare/workers-types@4.20250321.0)(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(@langchain/openai@0.5.0(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(ws@8.18.1(bufferutil@4.0.9)))(ai@4.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2))(langchain@0.3.19(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(axios@1.8.4)(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))(ws@8.18.1(bufferutil@4.0.9)))(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))
+        version: 0.5.31(@ai-sdk/openai@1.3.0(zod@3.24.2))(@cloudflare/workers-types@4.20250321.0)(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(@langchain/openai@0.5.0(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(ws@8.18.1(bufferutil@4.0.9)))(ai@4.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2))(langchain@0.3.19(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(axios@1.8.4)(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))(ws@8.18.1(bufferutil@4.0.9)))(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))
       content-type:
         specifier: ^1.0.5
         version: 1.0.5
@@ -294,6 +304,9 @@ importers:
       eslint-import-resolver-typescript:
         specifier: ^4.3.1
         version: 4.3.1(eslint-plugin-import@2.31.0)(eslint@9.23.0(jiti@1.21.7))
+      eslint-plugin-tailwindcss:
+        specifier: ^3.18.0
+        version: 3.18.0(tailwindcss@3.4.17)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -330,8 +343,8 @@ packages:
     peerDependencies:
       zod: ^3.0.0
 
-  '@ai-sdk/openai@1.3.6':
-    resolution: {integrity: sha512-Lyp6W6dg+ERMJru3DI8/pWAjXLB0GbMMlXh4jxA3mVny8CJHlCAjlEJRuAdLg1/CFz4J1UDN2/4qBnIWtLFIqw==}
+  '@ai-sdk/openai@1.3.0':
+    resolution: {integrity: sha512-zKKacGH8AyUjC63GizDpts+Nf8qAEtvAtO5O/AfVML8pIrtNWsbF+U3nT6mM8Oqvkp9X7ivuc4hCurivMFlJ6Q==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -352,16 +365,6 @@ packages:
     resolution: {integrity: sha512-0M+qjp+clUD0R1E5eWQFhxEvWLNaOtGQRUaBn8CUABnSKredagq92hUS9VjOzGsTm37xLfpaxl97AVtbeOsHew==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/react@1.2.0':
-    resolution: {integrity: sha512-fUTZkAsxOMz8ijjWf87E/GfYkgsH4V5MH2yuj7EXh5ShjWe/oayn2ZJkyoqFMr4Jf8m5kptDaivmbIenDq5OXA==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      react: ^18 || ^19 || ^19.0.0-rc
-      zod: ^3.23.8
-    peerDependenciesMeta:
-      zod:
-        optional: true
-
   '@ai-sdk/react@1.2.5':
     resolution: {integrity: sha512-0jOop3S2WkDOdO4X5I+5fTGqZlNX8/h1T1eYokpkR9xh8Vmrxqw8SsovqGvrddTsZykH8uXRsvI+G4FTyy894A==}
     engines: {node: '>=18'}
@@ -374,12 +377,6 @@ packages:
 
   '@ai-sdk/ui-utils@1.2.0':
     resolution: {integrity: sha512-0IZwCqe7E+GkCASTDPAbzMr+POm9GDzWvFd37FvzpOeKNeibmge/LZEkTDbGSa+3b928H8wPwOLsOXBWPLUPDQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.23.8
-
-  '@ai-sdk/ui-utils@1.2.4':
-    resolution: {integrity: sha512-wLTxEZrKZRyBmlVZv8nGXgLBg5tASlqXwbuhoDu0MhZa467ZFREEnosH/OC/novyEHTQXko2zC606xoVbMrUcA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.23.8
@@ -2412,7 +2409,7 @@ packages:
       '@cloudflare/workers-types': '>=4.20240718.0'
       '@langchain/core': '>=0.2.18'
       '@langchain/openai': '>=0.2.5'
-      ai: '>=3.2.22'
+      ai: 4.2.0
       langchain: '>=0.2.11'
       openai: '>=4.50.0'
 
@@ -2881,6 +2878,12 @@ packages:
     engines: {node: '>=4'}
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7
+
+  eslint-plugin-tailwindcss@3.18.0:
+    resolution: {integrity: sha512-PQDU4ZMzFH0eb2DrfHPpbgo87Zgg2EXSMOj1NSfzdZm+aJzpuwGerfowMIaVehSREEa0idbf/eoNYAOHSJoDAQ==}
+    engines: {node: '>=18.12.0'}
+    peerDependencies:
+      tailwindcss: ^3.4.0
 
   eslint-scope@8.3.0:
     resolution: {integrity: sha512-pUNxi75F8MJ/GdeKtVLSbYg4ZI34J6C0C7sbL4YOp2exGwen7ZsuBqKzUhXd0qMQ362yET3z+uPwKeg/0C2XCQ==}
@@ -5153,10 +5156,10 @@ snapshots:
       '@ai-sdk/provider-utils': 2.2.3(zod@3.24.2)
       zod: 3.24.2
 
-  '@ai-sdk/openai@1.3.6(zod@3.24.2)':
+  '@ai-sdk/openai@1.3.0(zod@3.24.2)':
     dependencies:
       '@ai-sdk/provider': 1.1.0
-      '@ai-sdk/provider-utils': 2.2.3(zod@3.24.2)
+      '@ai-sdk/provider-utils': 2.2.0(zod@3.24.2)
       zod: 3.24.2
 
   '@ai-sdk/provider-utils@2.2.0(zod@3.24.2)':
@@ -5178,20 +5181,10 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@1.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2)':
-    dependencies:
-      '@ai-sdk/provider-utils': 2.2.0(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.2.0(zod@3.24.2)
-      react: 19.0.0-rc-45804af1-20241021
-      swr: 2.3.3(react@19.0.0-rc-45804af1-20241021)
-      throttleit: 2.1.0
-    optionalDependencies:
-      zod: 3.24.2
-
   '@ai-sdk/react@1.2.5(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2)':
     dependencies:
       '@ai-sdk/provider-utils': 2.2.3(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.2.4(zod@3.24.2)
+      '@ai-sdk/ui-utils': 1.2.0(zod@3.24.2)
       react: 19.0.0-rc-45804af1-20241021
       swr: 2.3.3(react@19.0.0-rc-45804af1-20241021)
       throttleit: 2.1.0
@@ -5202,13 +5195,6 @@ snapshots:
     dependencies:
       '@ai-sdk/provider': 1.1.0
       '@ai-sdk/provider-utils': 2.2.0(zod@3.24.2)
-      zod: 3.24.2
-      zod-to-json-schema: 3.24.3(zod@3.24.2)
-
-  '@ai-sdk/ui-utils@1.2.4(zod@3.24.2)':
-    dependencies:
-      '@ai-sdk/provider': 1.1.0
-      '@ai-sdk/provider-utils': 2.2.3(zod@3.24.2)
       zod: 3.24.2
       zod-to-json-schema: 3.24.3(zod@3.24.2)
 
@@ -6743,7 +6729,7 @@ snapshots:
     dependencies:
       '@ai-sdk/provider': 1.1.0
       '@ai-sdk/provider-utils': 2.2.0(zod@3.24.2)
-      '@ai-sdk/react': 1.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2)
+      '@ai-sdk/react': 1.2.5(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2)
       '@ai-sdk/ui-utils': 1.2.0(zod@3.24.2)
       '@opentelemetry/api': 1.9.0
       eventsource-parser: 3.0.0
@@ -7085,9 +7071,9 @@ snapshots:
 
   commander@4.1.1: {}
 
-  composio-core@0.5.31(@ai-sdk/openai@1.3.6(zod@3.24.2))(@cloudflare/workers-types@4.20250321.0)(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(@langchain/openai@0.5.0(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(ws@8.18.1(bufferutil@4.0.9)))(ai@4.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2))(langchain@0.3.19(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(axios@1.8.4)(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))(ws@8.18.1(bufferutil@4.0.9)))(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)):
+  composio-core@0.5.31(@ai-sdk/openai@1.3.0(zod@3.24.2))(@cloudflare/workers-types@4.20250321.0)(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(@langchain/openai@0.5.0(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(ws@8.18.1(bufferutil@4.0.9)))(ai@4.2.0(react@19.0.0-rc-45804af1-20241021)(zod@3.24.2))(langchain@0.3.19(@langchain/core@0.3.43(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)))(axios@1.8.4)(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2))(ws@8.18.1(bufferutil@4.0.9)))(openai@4.91.1(ws@8.18.1(bufferutil@4.0.9))(zod@3.24.2)):
     dependencies:
-      '@ai-sdk/openai': 1.3.6(zod@3.24.2)
+      '@ai-sdk/openai': 1.3.0(zod@3.24.2)
       '@cloudflare/workers-types': 4.20250321.0
       '@composio/mcp': 1.0.3-0
       '@hey-api/client-axios': 0.2.12(axios@1.8.4)
@@ -7644,6 +7630,12 @@ snapshots:
       semver: 6.3.1
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
+
+  eslint-plugin-tailwindcss@3.18.0(tailwindcss@3.4.17):
+    dependencies:
+      fast-glob: 3.3.3
+      postcss: 8.5.3
+      tailwindcss: 3.4.17
 
   eslint-scope@8.3.0:
     dependencies:

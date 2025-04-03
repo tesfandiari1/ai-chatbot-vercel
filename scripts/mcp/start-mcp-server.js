@@ -1,9 +1,14 @@
 #!/usr/bin/env node
-const { spawn, exec } = require('node:child_process');
-const path = require('node:path');
-const fs = require('node:fs/promises');
-const http = require('node:http');
-const next = require('next');
+import { spawn, exec } from 'node:child_process';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import http from 'node:http';
+import next from 'next';
+import { fileURLToPath } from 'node:url';
+
+// Get current filename and directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const PORT = process.env.MCP_SERVER_PORT

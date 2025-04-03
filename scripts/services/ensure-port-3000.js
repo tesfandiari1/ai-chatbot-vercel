@@ -1,79 +1,38 @@
 #!/usr/bin/env node
-const { execSync } = require('node:child_process');
-const net = require('node:net');
+// ES Module Script
+import { exec } from 'node:child_process';
+import process from 'node:process';
 
-// Check if port 3000 is in use
-function isPortInUse(port) {
-  return new Promise((resolve) => {
-    const server = net.createServer();
+const PORT = 3000;
 
-    server.once('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(true); // Port is in use
-      } else {
-        resolve(false);
-      }
-    });
+console.log(`Checking if port ${PORT} is available...`);
 
-    server.once('listening', () => {
-      server.close();
-      resolve(false); // Port is free
-    });
+// Different commands for different platforms
+const cmd =
+  process.platform === 'win32'
+    ? `netstat -ano | findstr :${PORT}`
+    : `lsof -i:${PORT}`;
 
-    server.listen(port);
-  });
-}
-
-// Kill processes using port 3000
-function killPort3000Process() {
-  try {
-    // For macOS/Linux
-    if (process.platform !== 'win32') {
-      console.log('Attempting to kill process on port 3000...');
-      execSync('lsof -i :3000 -t | xargs kill -9', { stdio: 'ignore' });
-    } else {
-      // For Windows
-      console.log('Attempting to kill process on port 3000...');
-      execSync(
-        'FOR /F "tokens=5" %P IN (\'netstat -aon ^| findstr :3000\') DO TaskKill /PID %P /F',
-        {
-          stdio: 'ignore',
-          shell: true,
-        },
-      );
-    }
-    console.log('Successfully freed port 3000');
-  } catch (error) {
-    console.log(
-      'No process was running on port 3000 or failed to kill process',
+exec(cmd, (error, stdout, stderr) => {
+  if (stdout) {
+    console.error(`\x1b[31mError: Port ${PORT} is already in use!\x1b[0m`);
+    console.error(
+      `Please stop any processes using port ${PORT} before starting the development server.`,
     );
-  }
-}
-
-// Main function
-async function ensurePort3000Available() {
-  console.log('Checking if port 3000 is available...');
-
-  if (await isPortInUse(3000)) {
-    console.log('Port 3000 is currently in use');
-    killPort3000Process();
-
-    // Check again after killing
-    if (await isPortInUse(3000)) {
-      console.error(
-        'Failed to free port 3000. Please manually close the application using it.',
-      );
-      process.exit(1);
+    console.error('You can try:');
+    if (process.platform === 'win32') {
+      console.error(`  1. Run Command Prompt as Administrator`);
+      console.error(`  2. Execute: netstat -ano | findstr :${PORT}`);
+      console.error(`  3. Find the PID (Process ID) in the last column`);
+      console.error(`  4. Execute: taskkill /F /PID <PID>`);
+    } else {
+      console.error(`  1. Execute: lsof -i:${PORT}`);
+      console.error(`  2. Find the PID (Process ID) in the second column`);
+      console.error(`  3. Execute: kill -9 <PID>`);
     }
+    process.exit(1);
   } else {
-    console.log('Port 3000 is available');
+    console.log(`Port ${PORT} is available. Starting server...`);
+    process.exit(0);
   }
-
-  console.log('Ready to start application on port 3000');
-}
-
-// Run the check
-ensurePort3000Available().catch((error) => {
-  console.error('Error checking port availability:', error);
-  process.exit(1);
 });

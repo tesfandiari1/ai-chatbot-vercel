@@ -86,7 +86,7 @@ const Tool = ({
 
   return (
     <Tooltip open={isHovered && !isAnimating}>
-      <TooltipTrigger asChild>
+      <TooltipTrigger asChild={true as any}>
         <motion.div
           className={cx('p-3 rounded-full', {
             'bg-primary !text-primary-foreground': selectedTool === description,
@@ -158,7 +158,7 @@ const ReadingLevelSelector = ({
     useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscribe = yToLevel.on('change', (latest) => {
+    const unsubscribe = yToLevel.on('change', (latest: number) => {
       const level = Math.min(5, Math.max(0, Math.round(Math.abs(latest))));
       setCurrentLevel(level);
     });
@@ -183,7 +183,7 @@ const ReadingLevelSelector = ({
 
       <TooltipProvider>
         <Tooltip open={!isAnimating}>
-          <TooltipTrigger asChild>
+          <TooltipTrigger asChild={true as any}>
             <motion.div
               className={cx(
                 'absolute bg-background p-3 border rounded-full flex flex-row items-center',
@@ -312,12 +312,14 @@ const PureToolbar = ({
   artifactKind: ArtifactKind;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  useOnClickOutside(toolbarRef, () => {
+  useOnClickOutside(toolbarRef as React.RefObject<HTMLElement>, () => {
     setIsToolbarVisible(false);
     setSelectedTool(null);
   });
