@@ -10,35 +10,21 @@ import type {
   CalendarContext,
 } from '@/lib/calendar/types';
 import { Button } from '@/components/ui/button';
-import { handleCalendarInteraction } from '@/lib/ai/utils/calendar-interface';
-import { enhancedCalendarInteraction } from '@/lib/ai/utils/auto-calendar';
+import { handleCalendarInteraction } from '@/lib/calendar/utils';
 import { useState, useCallback, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
 import {
   useCalendarContext,
   useCalendarActions,
   createSelectionContext,
 } from '@/lib/calendar/context';
-
-// Simple Spinner component using Lucide icon
-const Spinner = ({
-  size = 'default',
-  className = '',
-}: {
-  size?: 'sm' | 'default' | 'lg';
-  className?: string;
-}) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    default: 'h-6 w-6',
-    lg: 'h-8 w-8',
-  };
-  return (
-    <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
-  );
-};
+import {
+  CalendarSpinner,
+  CalendarContainer,
+  CalendarLoader,
+  SubmittingIndicator,
+  getChatFunctions,
+} from './ui-components';
 
 interface DatePickerProps {
   selectedDate?: string;
@@ -137,19 +123,20 @@ export function DatePicker({
     try {
       console.debug('DatePicker: Submitting date selection:', formattedDate);
 
-      // Call the enhanced handler to advance to next step with proper options
-      // This uses more aggressive submission tactics to ensure progression
+      // Call the handler to advance to next step with proper options
       const fullContext = {
         ...selectionContext,
         autoAdvance: true, // Always force auto advance
       };
 
+      // Use the chat functions from ui-components
+      const chatFunctions = chatOptions || getChatFunctions();
+
       // Add a small delay to ensure state updates complete before submission
       setTimeout(() => {
-        enhancedCalendarInteraction('date', formattedDate, fullContext, {
-          setInput: chatOptions?.setInput,
-          sendMessage: chatOptions?.submit,
-          debug: true,
+        handleCalendarInteraction('date', formattedDate, fullContext, {
+          setInput: chatFunctions.setInput,
+          submit: chatFunctions.submit,
         });
 
         // Also call onDateSelect if provided
@@ -209,47 +196,25 @@ export function DatePicker({
         date.getDay() === 0 || // Sunday
         date.getDay() === 6 || // Saturday
         // Check if date is in availableDates
-        !availableDates.includes(date.toISOString().split('T')[0])
+        (availableDates.length > 0 &&
+          !availableDates.includes(date.toISOString().split('T')[0]))
       );
     },
     [availableDates],
   );
 
+  // If loading, use the CalendarLoader component
   if (loading) {
-    return (
-      <div
-        className={cn(
-          'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef] animate-pulse',
-          className,
-        )}
-        data-component="DatePicker"
-      >
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-7 w-[180px] bg-[#1450ef]/30" />
-          <Skeleton className="h-4 w-[100px] bg-[#1450ef]/30" />
-        </div>
-        <div className="h-[300px] bg-[#1450ef]/20 rounded-lg" />
-      </div>
-    );
+    return <CalendarLoader />;
   }
 
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef]',
-        className,
-      )}
-      data-component="DatePicker"
+    <CalendarContainer
+      title="Select a date for your appointment"
+      subtitle={`Available dates for ${effectiveAppointmentType}`}
+      className={className}
+      dataComponent="DatePicker"
     >
-      <div className="flex flex-col space-y-1">
-        <h2 className="text-xl font-medium text-[#f4e9dc]">
-          Select a date for your appointment
-        </h2>
-        <p className="text-sm text-[#f4e9dc]/80">
-          {`Available dates for ${effectiveAppointmentType}`}
-        </p>
-      </div>
-
       <div className="bg-[#1450ef]/20 rounded-lg p-2 shadow-sm">
         <Calendar
           mode="single"
@@ -261,12 +226,7 @@ export function DatePicker({
         />
       </div>
 
-      {submitting && (
-        <div className="flex items-center justify-center w-full py-2 text-[#f4e9dc]">
-          <Spinner size="sm" className="mr-2" />
-          <span>Selecting date...</span>
-        </div>
-      )}
-    </div>
+      <SubmittingIndicator text="Selecting date..." submitting={submitting} />
+    </CalendarContainer>
   );
 }

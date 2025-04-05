@@ -6,7 +6,6 @@ import {
   useReducer,
   type ReactNode,
   useMemo,
-  useEffect,
 } from 'react';
 import type {
   AppointmentType,
@@ -112,17 +111,6 @@ export function CalendarProvider({
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({ state, dispatch }), [state]);
 
-  // Store context in sessionStorage when it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.setItem('calendarContext', JSON.stringify(state));
-      } catch (error) {
-        console.error('Error storing calendar context:', error);
-      }
-    }
-  }, [state]);
-
   return (
     <CalendarContext.Provider value={contextValue}>
       {children}
@@ -168,22 +156,6 @@ export function createSelectionContext(state: CalendarContextType) {
     autoAdvance: state.autoAdvance,
     previousSelections: state,
   };
-}
-
-// Helper to initialize context from session storage
-export function getStoredCalendarContext(): Partial<CalendarContextType> {
-  if (typeof window === 'undefined') return {};
-
-  try {
-    const storedContext = sessionStorage.getItem('calendarContext');
-    if (storedContext) {
-      return JSON.parse(storedContext);
-    }
-  } catch (error) {
-    console.error('Error retrieving calendar context:', error);
-  }
-
-  return {};
 }
 
 /**

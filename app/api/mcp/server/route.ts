@@ -4,6 +4,10 @@ import {
   McpServer,
   ResourceTemplate,
 } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { 
+  getCalendarToolSchemas, 
+  registerCalendarToolsWithMCP 
+} from '@/lib/ai/tools/calendar-tool-factory';
 
 export const runtime = 'nodejs';
 export const preferredRegion = 'iad1'; // Specify deployment region if needed
@@ -58,6 +62,8 @@ const createMcpServer = () => {
             },
           },
         },
+        // Add calendar tool schemas
+        ...getCalendarToolSchemas(),
       },
       resources: {
         info: {
@@ -83,6 +89,9 @@ const createMcpServer = () => {
   // Add tools and resources to the server
   addToolsToServer(server);
   addResourcesToServer(server);
+  
+  // Register calendar tools with the MCP server
+  registerCalendarToolsWithMCP(server);
 
   return server;
 };
@@ -355,6 +364,8 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          // Add calendar tool schemas
+          ...getCalendarToolSchemas(),
         },
         resources: {
           info: {
@@ -444,6 +455,26 @@ async function processMcpRequest(server: McpServer, request: any) {
         },
       ],
     };
+  } else if (request.type === 'tool_call' && request.tool.startsWith('get') && request.tool.includes('Calendar')) {
+    // Handle calendar tool calls - delegate to the calendar tool implementations
+    try {
+      // Get the server to handle the request through the registered tools
+      return await server.handleToolCall({
+        name: request.tool,
+        arguments: request.arguments
+      });
+    } catch (error) {
+      console.error(`Error handling calendar tool ${request.tool}:`, error);
+      return {
+        content: [
+          { 
+            type: 'text', 
+            text: `Error handling calendar request: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }
+        ],
+        isError: true
+      };
+    }
   }
 
   throw new Error(`Unsupported request type: ${request.type}`);

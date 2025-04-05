@@ -22,30 +22,15 @@ import type {
   AppointmentFormData,
   SelectionContext,
 } from '@/lib/calendar/types';
-import { handleCalendarInteraction } from '@/lib/ai/utils/calendar-interface';
-import { enhancedCalendarInteraction } from '@/lib/ai/utils/auto-calendar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { handleCalendarInteraction } from '@/lib/calendar/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-
-// Simple Spinner component using Lucide icon
-const Spinner = ({
-  size = 'default',
-  className = '',
-}: {
-  size?: 'sm' | 'default' | 'lg';
-  className?: string;
-}) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    default: 'h-6 w-6',
-    lg: 'h-8 w-8',
-  };
-  return (
-    <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
-  );
-};
+import {
+  CalendarContainer,
+  FormLoader,
+  CalendarSpinner,
+  getChatFunctions,
+} from './ui-components';
 
 interface AppointmentFormProps {
   date: string;
@@ -55,6 +40,10 @@ interface AppointmentFormProps {
   autoAdvance?: boolean; // Whether to automatically advance to the next step
   className?: string;
   loading?: boolean; // Add loading prop
+  chatOptions?: {
+    setInput?: (text: string) => void;
+    submit?: () => void;
+  };
 }
 
 export function AppointmentForm({
@@ -65,6 +54,7 @@ export function AppointmentForm({
   autoAdvance = false,
   className,
   loading = false,
+  chatOptions,
 }: AppointmentFormProps) {
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentFormSchema),
@@ -77,11 +67,11 @@ export function AppointmentForm({
   });
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | undefined>(undefined);
 
   const handleSubmit = async (data: AppointmentFormData) => {
     setIsSubmitting(true);
-    setError(null);
+    setError(undefined);
 
     try {
       console.debug('AppointmentForm: Form submitted with data:', data);
@@ -92,10 +82,13 @@ export function AppointmentForm({
         previousSelections: applicationContext,
       };
 
+      // Use the chat functions from ui-components
+      const chatFunctions = chatOptions || getChatFunctions();
+
       // Add a small delay to ensure state is properly updated before submission
       setTimeout(() => {
-        // Use enhanced calendar interaction handler for more reliable submission
-        const success = enhancedCalendarInteraction(
+        // Use calendar interaction handler for form submission
+        const success = handleCalendarInteraction(
           'form',
           {
             date,
@@ -103,6 +96,10 @@ export function AppointmentForm({
             ...data,
           },
           selectionContext,
+          {
+            setInput: chatFunctions.setInput,
+            submit: chatFunctions.submit,
+          },
         );
 
         // Only run the original callback if the direct handler wasn't successful
@@ -124,72 +121,35 @@ export function AppointmentForm({
     }
   };
 
+  // Format appointment details for subtitle
+  const subtitle =
+    date && timeSlot
+      ? `Appointment on ${format(new Date(date), 'MMMM d, yyyy')} at ${timeSlot}`
+      : `Please provide your information to complete the booking`;
+
+  // If loading, show the FormLoader component within container
   if (loading) {
     return (
-      <div
-        className={cn(
-          'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef]',
-          className,
-        )}
-        data-component="AppointmentForm"
+      <CalendarContainer
+        title="Complete Your Booking"
+        subtitle={subtitle}
+        className={className}
+        dataComponent="AppointmentForm"
+        loading={true}
       >
-        <div className="flex flex-col space-y-1 pb-2">
-          <Skeleton className="h-7 w-[200px] bg-[#1450ef]/30" />
-          <Skeleton className="h-5 w-[300px] bg-[#1450ef]/30" />
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <Skeleton className="h-5 w-[80px] mb-2 bg-[#1450ef]/30" />
-            <Skeleton className="h-10 w-full bg-[#1450ef]/30" />
-          </div>
-
-          <div>
-            <Skeleton className="h-5 w-[80px] mb-2 bg-[#1450ef]/30" />
-            <Skeleton className="h-10 w-full bg-[#1450ef]/30" />
-          </div>
-
-          <div>
-            <Skeleton className="h-5 w-[120px] mb-2 bg-[#1450ef]/30" />
-            <Skeleton className="h-10 w-full bg-[#1450ef]/30" />
-          </div>
-
-          <div>
-            <Skeleton className="h-5 w-[150px] mb-2 bg-[#1450ef]/30" />
-            <Skeleton className="h-20 w-full bg-[#1450ef]/30" />
-            <Skeleton className="h-4 w-[70%] mt-2 bg-[#1450ef]/30" />
-          </div>
-
-          <Skeleton className="h-10 w-full mt-6 bg-[#1450ef]/30" />
-        </div>
-      </div>
+        <FormLoader />
+      </CalendarContainer>
     );
   }
 
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef]',
-        className,
-      )}
-      data-component="AppointmentForm"
+    <CalendarContainer
+      title="Complete Your Booking"
+      subtitle={subtitle}
+      className={className}
+      dataComponent="AppointmentForm"
+      error={error}
     >
-      <div className="flex flex-col space-y-1 pb-2">
-        <h2 className="text-xl font-medium text-[#f4e9dc]">
-          Complete Your Booking
-        </h2>
-        <p className="text-sm text-[#f4e9dc]/80">
-          {date && timeSlot ? (
-            <>
-              Appointment on {format(new Date(date), 'MMMM d, yyyy')} at{' '}
-              {timeSlot}
-            </>
-          ) : (
-            <>Please provide your information to complete the booking</>
-          )}
-        </p>
-      </div>
-
       {error && (
         <Alert variant="destructive" className="mb-2">
           <AlertCircle className="h-4 w-4" />
@@ -289,7 +249,7 @@ export function AppointmentForm({
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
-                <Spinner size="sm" className="mr-2" />
+                <CalendarSpinner size="sm" className="mr-2" />
                 Booking Appointment...
               </span>
             ) : (
@@ -298,6 +258,6 @@ export function AppointmentForm({
           </Button>
         </form>
       </Form>
-    </div>
+    </CalendarContainer>
   );
 }

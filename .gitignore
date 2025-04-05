@@ -44,3 +44,5 @@ yarn-error.log*
 
 # Exclude the mcp-template reference folder
 /mcp-template
+
+**/CLAUDE.local.md

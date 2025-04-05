@@ -5,29 +5,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import type { SelectionContext } from '@/lib/calendar/types';
-import { handleCalendarInteraction } from '@/lib/ai/utils/calendar-interface';
-import { enhancedCalendarInteraction } from '@/lib/ai/utils/auto-calendar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
-import { useCallback, useState, useRef, useEffect } from 'react';
-
-// Simple Spinner component using Lucide icon
-const Spinner = ({
-  size = 'default',
-  className = '',
-}: {
-  size?: 'sm' | 'default' | 'lg';
-  className?: string;
-}) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    default: 'h-6 w-6',
-    lg: 'h-8 w-8',
-  };
-  return (
-    <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
-  );
-};
+import { handleCalendarInteraction } from '@/lib/calendar/utils';
+import { useCallback, useState, useRef } from 'react';
+import {
+  CalendarContainer,
+  TimeSlotsLoader,
+  SubmittingIndicator,
+  getChatFunctions,
+} from './ui-components';
 
 interface TimePickerProps {
   selectedDate: string;
@@ -65,11 +50,6 @@ const AFTERNOON_SLOTS = [
   '4:30pm',
 ];
 
-// In the loading state of the TimePicker component
-// Define skeleton arrays with proper keys
-const MORNING_SKELETON_SLOTS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
-const AFTERNOON_SKELETON_SLOTS = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
-
 export function TimePicker({
   selectedDate,
   selectedTimeSlot,
@@ -92,83 +72,6 @@ export function TimePicker({
 
   // Add ref to prevent multiple submissions
   const timeSelectSubmittedRef = useRef(false);
-
-  // Use refs instead of direct DOM queries
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  // Find form elements on mount using refs
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Only search for DOM elements if we're not using the chat API
-    if (!chatOptions?.setInput || !chatOptions?.submit) {
-      const form = document.querySelector(
-        'form[data-message-form]',
-      ) as HTMLFormElement;
-      if (form) {
-        formRef.current = form;
-        inputRef.current = form.querySelector('textarea');
-        submitButtonRef.current = form.querySelector('button[type="submit"]');
-      }
-    }
-  }, [chatOptions]);
-
-  // Create a function to handle form submission
-  const submitForm = useCallback(
-    (message: string) => {
-      // APPROACH 1: Use chat options if available (preferred, more React-like)
-      if (chatOptions?.setInput && chatOptions?.submit) {
-        chatOptions.setInput(message);
-        setTimeout(() => {
-          chatOptions.submit?.();
-        }, 10);
-        return true;
-      }
-
-      // APPROACH 2: Use refs if available (more reliable than direct queries)
-      if (formRef.current && inputRef.current) {
-        try {
-          // Set input value
-          inputRef.current.value = message;
-
-          // Trigger React's synthetic event system with modern technique
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype,
-            'value',
-          )?.set;
-
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(inputRef.current, message);
-
-            // Create and dispatch input event using modern event creation
-            const inputEvent = new Event('input', {
-              bubbles: true,
-              cancelable: true,
-              composed: true, // Ensures the event crosses shadow DOM boundaries
-            });
-            inputRef.current.dispatchEvent(inputEvent);
-
-            // Submit form using the appropriate method
-            if (submitButtonRef.current) {
-              submitButtonRef.current.click();
-            } else {
-              formRef.current.requestSubmit(); // Modern submit method
-            }
-            return true;
-          }
-        } catch (err) {
-          console.error('Error in React synthetic event dispatch:', err);
-          setError('Failed to submit time selection. Please try again.');
-        }
-      }
-
-      // Return false if we couldn't submit
-      return false;
-    },
-    [chatOptions],
-  );
 
   // Memoize the select handler to avoid recreation on each render
   const handleTimeSelect = useCallback(
@@ -194,19 +97,25 @@ export function TimePicker({
       onTimeSlotSelect(timeSlot, selectionContext);
 
       try {
+        // Use the chat functions from ui-components
+        const chatFunctions = chatOptions || getChatFunctions();
+
         // Add a small delay to ensure state updates properly
         setTimeout(() => {
           console.debug('TimePicker: Submitting time selection:', timeSlot);
 
-          // Use the enhanced calendar interaction handler for more reliable submission
-          enhancedCalendarInteraction(
+          // Use the unified calendar interaction handler
+          handleCalendarInteraction(
             'time',
             {
               date: selectedDate,
               timeSlot: timeSlot,
             },
             selectionContext,
-            chatOptions, // Pass chat options for more reliable submission
+            {
+              setInput: chatFunctions.setInput,
+              submit: chatFunctions.submit,
+            },
           );
 
           // Clear submitting state after a delay
@@ -254,77 +163,34 @@ export function TimePicker({
     </div>
   );
 
+  // If loading, use the TimeSlotsLoader component
   if (loading) {
     return (
-      <div
-        className={cn(
-          'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef]',
-          className,
-        )}
-        data-component="TimePicker"
+      <CalendarContainer
+        title="Select a Time"
+        subtitle="Loading available time slots..."
+        className={className}
+        dataComponent="TimePicker"
+        loading={true}
       >
-        <div className="flex flex-col space-y-1">
-          <Skeleton className="h-7 w-[180px] bg-[#1450ef]/30" />
-          <Skeleton className="h-5 w-[250px] bg-[#1450ef]/30" />
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <Skeleton className="h-5 w-[100px] mb-2 bg-[#1450ef]/30" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {MORNING_SKELETON_SLOTS.map((id) => (
-                <Skeleton
-                  key={`morning-slot-${id}`}
-                  className="h-14 w-full bg-[#1450ef]/30"
-                />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Skeleton className="h-5 w-[100px] mb-2 bg-[#1450ef]/30" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {AFTERNOON_SKELETON_SLOTS.map((id) => (
-                <Skeleton
-                  key={`afternoon-slot-${id}`}
-                  className="h-14 w-full bg-[#1450ef]/30"
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+        <TimeSlotsLoader />
+      </CalendarContainer>
     );
   }
 
+  // Format date for subtitle
+  const subtitle = selectedDate
+    ? `Available times for ${format(new Date(selectedDate), 'MMMM d, yyyy')}`
+    : `Choose from available 30-minute slots`;
+
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-4 rounded-2xl p-4 max-w-[500px] bg-[#140556] border border-[#1450ef]',
-        className,
-      )}
-      data-component="TimePicker"
+    <CalendarContainer
+      title="Select a Time"
+      subtitle={subtitle}
+      className={className}
+      dataComponent="TimePicker"
+      error={error}
     >
-      <div className="flex flex-col space-y-1">
-        <h2 className="text-xl font-medium text-[#f4e9dc]">Select a Time</h2>
-        <p className="text-sm text-[#f4e9dc]/80">
-          {selectedDate ? (
-            <>
-              Available times for{' '}
-              {format(new Date(selectedDate), 'MMMM d, yyyy')}
-            </>
-          ) : (
-            <>Choose from available 30-minute slots</>
-          )}
-        </p>
-      </div>
-
-      {error && (
-        <div className="text-red-200 text-sm py-1 px-2 bg-red-900/20 rounded border border-red-800">
-          {error}
-        </div>
-      )}
-
       <div className="space-y-6">
         {MORNING_SLOTS.length > 0 && (
           <TimeSlotGroup title="Morning" slots={MORNING_SLOTS} />
@@ -341,13 +207,10 @@ export function TimePicker({
         )}
       </div>
 
-      {/* Show submitting indicator */}
-      {submitting && (
-        <div className="flex items-center justify-center w-full py-2 text-[#f4e9dc]">
-          <Spinner size="sm" className="mr-2" />
-          <span>Selecting time slot...</span>
-        </div>
-      )}
-    </div>
+      <SubmittingIndicator
+        text="Selecting time slot..."
+        submitting={submitting}
+      />
+    </CalendarContainer>
   );
 }

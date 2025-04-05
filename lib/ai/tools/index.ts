@@ -18,24 +18,13 @@ export {
 
 // Calendar interface utilities
 export {
-  executeCalendarToolSequence,
   determineNextCalendarTool,
-  getCalendarContext,
-  storeCalendarContext,
-  callCalendarTool,
   createCalendarComponentProps,
   handleCalendarInteraction,
   formatCalendarMessage,
-  configureCalendarDebug,
-  getCalendarDebugState,
-  // These are the previously deprecated functions now exported directly
-  // For backward compatibility only - use the functions above instead
-  composeCalendarTools,
-  startCalendarBookingFlow,
-  executeToolsInParallel,
-  checkMultipleDatesAvailability,
-  initializeBookingWithPreferences,
-} from '../utils/calendar-interface';
+  STEP_TO_TOOL_MAP,
+  TOOL_TO_STEP_MAP,
+} from '@/lib/calendar/utils';
 
 // Tool registration system
 import type { Tool } from 'ai';
